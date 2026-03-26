@@ -11,14 +11,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Spatie\Permission\Traits\HasRoles;
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Filament\Models\Contracts\HasName;
 
 #[Fillable(['full_name', 'email', 'password', 'role', 'preferred_locale', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements HasName
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, HasUuids, HasRoles;
+    use HasFactory, Notifiable, HasUuids, HasRoles, HasPanelShield;
 
     /**
      * Get the attributes that should be cast.
@@ -47,5 +49,10 @@ class User extends Authenticatable
     public function maintenanceLogs(): HasMany
     {
         return $this->hasMany(MaintenanceLog::class, 'technician_id');
+    }
+
+    public function getFilamentName(): string
+    {
+        return $this->full_name ?? $this->email;
     }
 }

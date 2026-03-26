@@ -5,19 +5,21 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AssetResource\Pages;
 use App\Filament\Resources\AssetResource\RelationManagers;
 use App\Models\Asset;
+use App\Models\Assignment;
+use App\Models\Employee;
 use App\Enums\AssetStatus;
+use App\Enums\ConditionRating;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Concerns\Translatable;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 
 class AssetResource extends Resource
 {
-    use Translatable;
-
     protected static ?string $model = Asset::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
@@ -82,10 +84,91 @@ class AssetResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('checkOut')
+                    ->label(__('Check Out'))
+                    ->icon('heroicon-o-arrow-right-start-on-rectangle')
+                    ->color('success')
+                    ->visible(fn (Asset $record) => $record->status === AssetStatus::AVAILABLE->value)
+                    ->form([
+                        Forms\Components\Select::make('employee_id')
+                            ->label(__('Employee'))
+                            ->options(Employee::where('is_active', true)->pluck('full_name_en', 'id'))
+                            ->required()
+                            ->searchable(),
+                        Forms\Components\Select::make('condition_out')
+                            ->label(__('Condition'))
+                            ->options(ConditionRating::class)
+                            ->default(ConditionRating::GOOD->value)
+                            ->required(),
+                        Forms\Components\Textarea::make('notes')
+                    ])
+                    ->action(function (Asset $record, array $data) {
+                        Assignment::create([
+                            'asset_id' => $record->id,
+                            'employee_id' => $data['employee_id'],
+                            'assigned_by' => auth()->id(),
+                            'condition_out' => $data['condition_out'],
+                            'checked_out_at' => now(),
+                            'notes' => $data['notes'],
+                            'is_active' => true,
+                        ]);
+
+                        $record->update(['status' => AssetStatus::ASSIGNED->value]);
+
+                        Notification::make()
+                            ->title(__('Asset checked out successfully'))
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('checkIn')
+                    ->label(__('Check In'))
+                    ->icon('heroicon-o-arrow-left-start-on-rectangle')
+                    ->color('warning')
+                    ->visible(fn (Asset $record) => $record->status === AssetStatus::ASSIGNED->value)
+                    ->form([
+                        Forms\Components\Select::make('condition_in')
+                            ->label(__('Return Condition'))
+                            ->options(ConditionRating::class)
+                            ->default(ConditionRating::GOOD->value)
+                            ->required(),
+                        Forms\Components\Textarea::make('notes')
+                    ])
+                    ->action(function (Asset $record, array $data) {
+                        $assignment = $record->activeAssignment;
+                        
+                        if ($assignment) {
+                            $assignment->update([
+                                'checked_in_at' => now(),
+                                'condition_in' => $data['condition_in'],
+                                'notes' => $data['notes'],
+                                'is_active' => false,
+                            ]);
+                        }
+
+                        $record->update(['status' => AssetStatus::AVAILABLE->value]);
+
+                        Notification::make()
+                            ->title(__('Asset checked in successfully'))
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('printLabel')
+                    ->label(__('Print Label'))
+                    ->icon('heroicon-o-printer')
+                    ->url(fn (Asset $record) => route('asset.label', $record))
+                    ->openUrlInNewTab(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('bulkPrint')
+                        ->label(__('Print Labels'))
+                        ->icon('heroicon-o-printer')
+                        ->action(function (\Illuminate\Support\Collection $records) {
+                            // In a real app, this would merge PDFs. 
+                            // For simplicity, we can redirect or show link.
+                            return redirect()->route('asset.label', ['asset' => $records->first()->id]);
+                        }),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);

@@ -5,9 +5,24 @@ namespace App\Observers;
 use App\Models\Asset;
 use App\Services\LabelGenerationService;
 use App\Services\AuditLogger;
+use App\Services\AssetService;
 
 class AssetObserver
 {
+    /**
+     * Handle the Asset "creating" event.
+     */
+    public function creating(Asset $asset): void
+    {
+        if (empty($asset->asset_tag)) {
+            $asset->asset_tag = app(AssetService::class)->generateAssetTag();
+        }
+
+        if (empty($asset->created_by)) {
+            $asset->created_by = auth()->id();
+        }
+    }
+
     /**
      * Handle the Asset "created" event.
      */
