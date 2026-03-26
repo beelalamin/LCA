@@ -51,18 +51,23 @@
         <div class="name">{{ $asset->name }}</div>
         
         <div class="codes">
-            <div class="column" style="width: 70%;">
+            @if($type === 'barcode' || $type === 'both')
+            <div class="column" style="width: {{ $type === 'both' ? '70%' : '100%' }};">
                 <img class="barcode" src="data:image/png;base64,{{ DNS1D::getBarcodePNG($asset->asset_tag, 'C128') }}" alt="barcode" />
                 <div style="margin-top: 2px;">{{ $asset->serial_number ?: 'N/A' }}</div>
             </div>
-            <div class="column" style="width: 30%;">
+            @endif
+
+            @if($type === 'qrcode' || $type === 'both')
+            <div class="column" style="width: {{ $type === 'both' ? '30%' : '100%' }};">
                 @php
                     $qr = \Endroid\QrCode\QrCode::create($asset->asset_tag)->setSize(100)->setMargin(0);
                     $writer = new \Endroid\QrCode\Writer\PngWriter();
                     $qrData = $writer->write($qr)->getDataUri();
                 @endphp
-                <img class="qr" src="{{ $qrData }}" alt="qr" />
+                <img class="qr" src="{{ $qrData }}" alt="qr" style="width: 50px; height: 50px;" />
             </div>
+            @endif
         </div>
         
         <div style="margin-top: 4px; border-top: 0.5px solid #ccc; padding-top: 2px;">

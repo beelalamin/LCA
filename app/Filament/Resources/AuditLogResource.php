@@ -49,7 +49,9 @@ class AuditLogResource extends Resource
                     ->relationship('performedBy', 'full_name'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                ])->icon('heroicon-m-ellipsis-vertical')
             ])
             ->bulkActions([])
             ->defaultSort('performed_at', 'desc');

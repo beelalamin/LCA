@@ -44,7 +44,9 @@ class AssignmentResource extends Resource
                 Tables\Filters\SelectFilter::make('asset_id')->relationship('asset', 'name'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                ])->icon('heroicon-m-ellipsis-vertical')
             ])
             ->bulkActions([]);
     }

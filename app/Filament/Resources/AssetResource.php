@@ -98,82 +98,91 @@ class AssetResource extends Resource
                     ->relationship('category', 'name'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Action::make('checkOut')
-                    ->label(__('Check Out'))
-                    ->icon('heroicon-o-arrow-right-start-on-rectangle')
-                    ->color('success')
-                    ->visible(fn (Asset $record) => $record->status === AssetStatus::AVAILABLE->value)
-                    ->form([
-                        Forms\Components\Select::make('employee_id')
-                            ->label(__('Employee'))
-                            ->options(Employee::where('is_active', true)->pluck('full_name_en', 'id'))
-                            ->required()
-                            ->searchable(),
-                        Forms\Components\Select::make('condition_out')
-                            ->label(__('Condition'))
-                            ->options(ConditionRating::class)
-                            ->default(ConditionRating::GOOD->value)
-                            ->required(),
-                        Forms\Components\Textarea::make('notes')
-                    ])
-                    ->action(function (Asset $record, array $data) {
-                        Assignment::create([
-                            'asset_id' => $record->id,
-                            'employee_id' => $data['employee_id'],
-                            'assigned_by' => auth()->id(),
-                            'condition_out' => $data['condition_out'],
-                            'checked_out_at' => now(),
-                            'notes' => $data['notes'],
-                            'is_active' => true,
-                        ]);
-
-                        $record->update(['status' => AssetStatus::ASSIGNED->value]);
-
-                        Notification::make()
-                            ->title(__('Asset checked out successfully'))
-                            ->success()
-                            ->send();
-                    }),
-                Action::make('checkIn')
-                    ->label(__('Check In'))
-                    ->icon('heroicon-o-arrow-left-start-on-rectangle')
-                    ->color('warning')
-                    ->visible(fn (Asset $record) => $record->status === AssetStatus::ASSIGNED->value)
-                    ->form([
-                        Forms\Components\Select::make('condition_in')
-                            ->label(__('Return Condition'))
-                            ->options(ConditionRating::class)
-                            ->default(ConditionRating::GOOD->value)
-                            ->required(),
-                        Forms\Components\Textarea::make('notes')
-                    ])
-                    ->action(function (Asset $record, array $data) {
-                        $assignment = $record->activeAssignment;
-                        
-                        if ($assignment) {
-                            $assignment->update([
-                                'checked_in_at' => now(),
-                                'condition_in' => $data['condition_in'],
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Action::make('checkOut')
+                        ->label(__('Check Out'))
+                        ->icon('heroicon-o-arrow-right-start-on-rectangle')
+                        ->color('success')
+                        ->visible(fn (Asset $record) => $record->status === AssetStatus::AVAILABLE->value)
+                        ->form([
+                            Forms\Components\Select::make('employee_id')
+                                ->label(__('Employee'))
+                                ->options(Employee::where('is_active', true)->pluck('full_name_en', 'id'))
+                                ->required()
+                                ->searchable(),
+                            Forms\Components\Select::make('condition_out')
+                                ->label(__('Condition'))
+                                ->options(ConditionRating::class)
+                                ->default(ConditionRating::GOOD->value)
+                                ->required(),
+                            Forms\Components\Textarea::make('notes')
+                        ])
+                        ->action(function (Asset $record, array $data) {
+                            Assignment::create([
+                                'asset_id' => $record->id,
+                                'employee_id' => $data['employee_id'],
+                                'assigned_by' => auth()->id(),
+                                'condition_out' => $data['condition_out'],
+                                'checked_out_at' => now(),
                                 'notes' => $data['notes'],
-                                'is_active' => false,
+                                'is_active' => true,
                             ]);
-                        }
 
-                        $record->update(['status' => AssetStatus::AVAILABLE->value]);
+                            $record->update(['status' => AssetStatus::ASSIGNED->value]);
 
-                        Notification::make()
-                            ->title(__('Asset checked in successfully'))
-                            ->success()
-                            ->send();
-                    }),
-                Action::make('printLabel')
-                    ->label(__('Print Label'))
-                    ->icon('heroicon-o-printer')
-                    ->url(fn (Asset $record) => route('asset.label', $record))
-                    ->openUrlInNewTab(),
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                            Notification::make()
+                                ->title(__('Asset checked out successfully'))
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('checkIn')
+                        ->label(__('Check In'))
+                        ->icon('heroicon-o-arrow-left-start-on-rectangle')
+                        ->color('warning')
+                        ->visible(fn (Asset $record) => $record->status === AssetStatus::ASSIGNED->value)
+                        ->form([
+                            Forms\Components\Select::make('condition_in')
+                                ->label(__('Return Condition'))
+                                ->options(ConditionRating::class)
+                                ->default(ConditionRating::GOOD->value)
+                                ->required(),
+                            Forms\Components\Textarea::make('notes')
+                        ])
+                        ->action(function (Asset $record, array $data) {
+                            $assignment = $record->activeAssignment;
+                            
+                            if ($assignment) {
+                                $assignment->update([
+                                    'checked_in_at' => now(),
+                                    'condition_in' => $data['condition_in'],
+                                    'notes' => $data['notes'],
+                                    'is_active' => false,
+                                ]);
+                            }
+
+                            $record->update(['status' => AssetStatus::AVAILABLE->value]);
+
+                            Notification::make()
+                                ->title(__('Asset checked in successfully'))
+                                ->success()
+                                ->send();
+                        }),
+                    Action::make('printBarcode')
+                        ->label(__('Print Barcode'))
+                        ->icon('heroicon-o-viewfinder-circle')
+                        ->url(fn (Asset $record) => route('asset.barcode', $record))
+                        ->openUrlInNewTab(),
+                    Action::make('printQrCode')
+                        ->label(__('Print QR Code'))
+                        ->icon('heroicon-o-qr-code')
+                        ->url(fn (Asset $record) => route('asset.qrcode', $record))
+                        ->openUrlInNewTab(),
+                    Tables\Actions\DeleteAction::make(),
+                ])
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->tooltip(__('Actions'))
             ])
             ->recordAction(Tables\Actions\ViewAction::class)
             ->bulkActions([

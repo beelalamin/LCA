@@ -43,8 +43,10 @@ class CategoryResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ])->icon('heroicon-m-ellipsis-vertical')
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
