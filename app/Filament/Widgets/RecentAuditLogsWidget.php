@@ -15,7 +15,7 @@ class RecentAuditLogsWidget extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(AuditLog::query()->latest('performed_at')->limit(5))
+            ->query(AuditLog::query()->with(['asset', 'performedBy'])->latest('performed_at')->limit(5))
             ->columns([
                 Tables\Columns\TextColumn::make('performed_at')->dateTime(),
                 Tables\Columns\TextColumn::make('action')->badge(),

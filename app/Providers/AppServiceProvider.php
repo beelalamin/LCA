@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Observers\AssetObserver;
@@ -25,5 +27,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Asset::observe(AssetObserver::class);
         Assignment::observe(AssignmentObserver::class);
+
+        DB::listen(function ($query) {
+             if ($query->time > 100) { // log queries slower than 100ms
+                 Log::info("Slow Query ({$query->time}ms): {$query->sql} with bindings: " . json_encode($query->bindings));
+             }
+        });
     }
 }

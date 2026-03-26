@@ -72,4 +72,9 @@ class MaintenanceLogResource extends Resource
             'index' => Pages\ManageMaintenanceLogs::route('/'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['asset', 'technician']);
+    }
 }

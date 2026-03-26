@@ -67,4 +67,9 @@ class EmployeeResource extends Resource
             'index' => Pages\ManageEmployees::route('/'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->withCount(['activeAssignments']);
+    }
 }

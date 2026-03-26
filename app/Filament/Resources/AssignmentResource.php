@@ -55,4 +55,9 @@ class AssignmentResource extends Resource
             'index' => Pages\ManageAssignments::route('/'),
         ];
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['asset', 'employee', 'assignedBy']);
+    }
 }

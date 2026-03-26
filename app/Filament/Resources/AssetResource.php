@@ -180,4 +180,9 @@ class AssetResource extends Resource
             'index' => Pages\ManageAssets::route('/'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['category', 'creator']);
+    }
 }
