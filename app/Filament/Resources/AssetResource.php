@@ -32,6 +32,11 @@ class AssetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Asset Management');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

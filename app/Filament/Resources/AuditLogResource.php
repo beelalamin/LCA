@@ -14,6 +14,15 @@ class AuditLogResource extends Resource
     protected static ?string $model = AuditLog::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationLabel = 'Activity Logs';
+    protected static ?string $pluralModelLabel = 'Activity Logs';
+    protected static ?string $modelLabel = 'Activity Log';
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('System Administration');
+    }
 
     public static function canCreate(): bool
     {
@@ -31,7 +40,6 @@ class AuditLogResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('performed_at')->dateTime()->sortable(),
                 Tables\Columns\TextColumn::make('action')->badge(),
-                Tables\Columns\TextColumn::make('entity_type')->searchable(),
                 Tables\Columns\TextColumn::make('asset.name')->searchable(),
                 Tables\Columns\TextColumn::make('performedBy.full_name')->searchable(),
             ])

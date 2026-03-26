@@ -15,6 +15,12 @@ class MaintenanceLogResource extends Resource
     protected static ?string $model = MaintenanceLog::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
+    protected static ?int $navigationSort = 4;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('System Administration');
+    }
 
     public static function form(Form $form): Form
     {

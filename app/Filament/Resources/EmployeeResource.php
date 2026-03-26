@@ -16,6 +16,11 @@ class EmployeeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Asset Management');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
