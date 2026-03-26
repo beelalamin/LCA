@@ -14,6 +14,14 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\Grid;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\Group;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
@@ -67,6 +75,82 @@ class AssetResource extends Resource
                     ->prefix('$'),
                 Forms\Components\DatePicker::make('warranty_expiry'),
                 Forms\Components\TextInput::make('location'),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('Core Identification')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('name')
+                                    ->label('Asset Name')
+                                    ->weight('bold')
+                                    ->size('lg'),
+                                TextEntry::make('asset_tag')
+                                    ->label('Asset Tag')
+                                    ->copyable()
+                                    ->icon('heroicon-m-qr-code')
+                                    ->color('primary'),
+                                TextEntry::make('status')
+                                    ->badge()
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'PURCHASED' => 'gray',
+                                        'AVAILABLE' => 'info',
+                                        'ASSIGNED' => 'success',
+                                        'IN_REPAIR' => 'warning',
+                                        'RETIRED', 'DISPOSED' => 'danger',
+                                        default => 'gray',
+                                    }),
+                            ]),
+                    ]),
+
+                Grid::make(2)
+                    ->schema([
+                        Section::make('Technical Details')
+                            ->schema([
+                                TextEntry::make('category.name'),
+                                TextEntry::make('manufacturer'),
+                                TextEntry::make('model'),
+                                TextEntry::make('serial_number')
+                                    ->copyable()
+                                    ->color('info'),
+                            ])->columnSpan(1),
+
+                        Section::make('Financial & Warranty')
+                            ->schema([
+                                TextEntry::make('purchase_date')
+                                    ->date(),
+                                TextEntry::make('purchase_cost')
+                                    ->prefix('$')
+                                    ->numeric(),
+                                TextEntry::make('warranty_expiry')
+                                    ->date()
+                                    ->color(fn ($record) => $record->warranty_expiry < now() ? 'danger' : 'success'),
+                            ])->columnSpan(1),
+                    ]),
+
+                Section::make('Location & Ownership')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('location')
+                                    ->icon('heroicon-m-map-pin'),
+                                TextEntry::make('creator.full_name')
+                                    ->label('Registered By'),
+                            ]),
+                    ]),
+
+                Section::make('Additional Information')
+                    ->schema([
+                        TextEntry::make('notes')
+                            ->markdown()
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsed(),
             ]);
     }
 
