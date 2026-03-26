@@ -194,7 +194,10 @@ class AssetResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageAssets::route('/'),
+            'index' => Pages\ListAssets::route('/'),
+            'create' => Pages\CreateAsset::route('/create'),
+            'view' => Pages\ViewAsset::route('/{record}'),
+            'edit' => Pages\EditAsset::route('/{record}/edit'),
         ];
     }
 

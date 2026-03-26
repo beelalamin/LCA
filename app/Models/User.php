@@ -15,12 +15,24 @@ use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Filament\Models\Contracts\HasName;
 
-#[Fillable(['full_name', 'email', 'password', 'role', 'preferred_locale', 'is_active'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements HasName
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasUuids, HasRoles, HasPanelShield;
+
+    protected $fillable = [
+        'full_name',
+        'email',
+        'password',
+        'role',
+        'preferred_locale',
+        'is_active',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     /**
      * Get the attributes that should be cast.

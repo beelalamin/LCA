@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Asset;
+use App\Filament\Resources\AssetResource;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -24,7 +25,7 @@ class ScanAsset extends Page
             ->first();
 
         if ($asset) {
-            $this->redirect(AssetResource::getUrl('edit', ['record' => $asset]));
+            $this->redirect(AssetResource::getUrl('view', ['record' => $asset]));
         } else {
             Notification::make()
                 ->title('Asset not found')
@@ -35,10 +36,12 @@ class ScanAsset extends Page
         }
     }
 
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
             Action::make('manual_search')
+                ->label('Manual Entry')
+                ->icon('heroicon-o-magnifying-glass')
                 ->form([
                     TextInput::make('tag')
                         ->label('Asset Tag / Serial Number')

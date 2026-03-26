@@ -4,9 +4,9 @@ namespace App\Filament\Resources\AssetResource\Pages;
 
 use App\Filament\Resources\AssetResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ManageRecords;
+use Filament\Resources\Pages\ListRecords;
 
-class ManageAssets extends ManageRecords
+class ListAssets extends ListRecords
 {
     protected static string $resource = AssetResource::class;
 
