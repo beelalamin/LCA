@@ -15,9 +15,14 @@ class AssignmentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    public static function getNavigationGroup(): ?string
+    public static function getModelLabel(): string
     {
-        return __('Asset Management');
+        return __('Assignment');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Assignments');
     }
 
     public static function canCreate(): bool
@@ -34,14 +39,14 @@ class AssignmentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('asset.name')->searchable(),
-                Tables\Columns\TextColumn::make('employee.full_name_en')->searchable(),
-                Tables\Columns\TextColumn::make('assignedBy.full_name')->label('Assigned By'),
-                Tables\Columns\TextColumn::make('checked_out_at')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('checked_in_at')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('condition_out')->badge(),
-                Tables\Columns\TextColumn::make('condition_in')->badge(),
-                Tables\Columns\IconColumn::make('is_active')->boolean(),
+                Tables\Columns\TextColumn::make('asset.name')->label(__('Asset'))->searchable(),
+                Tables\Columns\TextColumn::make('employee.full_name_en')->label(__('Employee'))->searchable(),
+                Tables\Columns\TextColumn::make('assignedBy.full_name')->label(__('Assigned By')),
+                Tables\Columns\TextColumn::make('checked_out_at')->label(__('Checked Out At'))->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('checked_in_at')->label(__('Checked In At'))->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('condition_out')->label(__('Condition Out'))->badge(),
+                Tables\Columns\TextColumn::make('condition_in')->label(__('Condition In'))->badge(),
+                Tables\Columns\IconColumn::make('is_active')->label(__('Active'))->boolean(),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active'),

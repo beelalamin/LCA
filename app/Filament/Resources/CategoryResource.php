@@ -16,11 +16,6 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    public static function getNavigationGroup(): ?string
-    {
-        return __('Asset Management');
-    }
-
     public static function form(Form $form): Form
     {
         return $form
@@ -38,11 +33,9 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->searchable(),
-                Tables\Columns\TextColumn::make('parent.name')->sortable(),
-                Tables\Columns\TextColumn::make('assets_count')
-                    ->counts('assets')
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('name')->label(__('Category'))->searchable(),
+                Tables\Columns\TextColumn::make('parent.name')->label(__('Parent Category'))->sortable(),
+                Tables\Columns\TextColumn::make('assets_count')->label(__('Assets Count'))->counts('assets'),
             ])
             ->filters([
                 //

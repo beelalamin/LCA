@@ -24,6 +24,21 @@ class AuditLogResource extends Resource
         return __('System Administration');
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return __('Activity Logs');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Activity Logs');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('Activity Log');
+    }
+
     public static function canCreate(): bool
     {
         return false;
@@ -38,10 +53,10 @@ class AuditLogResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('performed_at')->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('action')->badge(),
-                Tables\Columns\TextColumn::make('asset.name')->searchable(),
-                Tables\Columns\TextColumn::make('performedBy.full_name')->searchable(),
+                Tables\Columns\TextColumn::make('performed_at')->label(__('Performed At'))->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('action')->label(__('Action'))->badge(),
+                Tables\Columns\TextColumn::make('asset.name')->label(__('Asset'))->searchable(),
+                Tables\Columns\TextColumn::make('performedBy.full_name')->label(__('User'))->searchable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('action')

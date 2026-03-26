@@ -16,11 +16,6 @@ class EmployeeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    public static function getNavigationGroup(): ?string
-    {
-        return __('Asset Management');
-    }
-
     public static function form(Form $form): Form
     {
         return $form
@@ -44,10 +39,12 @@ class EmployeeResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('employee_number')->searchable(),
-                Tables\Columns\TextColumn::make('full_name_en')->searchable(),
-                Tables\Columns\TextColumn::make('department')->searchable(),
-                Tables\Columns\TextColumn::make('active_assignments_count')
+                Tables\Columns\TextColumn::make('employee_number')->label(__('Employee Number'))->searchable(),
+                Tables\Columns\TextColumn::make('full_name_en')->label(__('Name'))->searchable(),
+                Tables\Columns\TextColumn::make('phone')->label(__('Phone'))->searchable(),
+                Tables\Columns\TextColumn::make('department')->label(__('Department'))->searchable(),
+                Tables\Columns\TextColumn::make('job_title')->label(__('Job Title'))->searchable(),
+                Tables\Columns\TextColumn::make('active_assignments_count')->label(__('Active Assignments Count'))
                     ->counts('activeAssignments'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),

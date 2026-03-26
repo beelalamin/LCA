@@ -32,9 +32,14 @@ class AssetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-computer-desktop';
 
-    public static function getNavigationGroup(): ?string
+    public static function getModelLabel(): string
     {
-        return __('Asset Management');
+        return __('Asset');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Assets');
     }
 
     public static function form(Form $form): Form
@@ -163,12 +168,13 @@ class AssetResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('asset_tag')->searchable(),
-                Tables\Columns\TextColumn::make('serial_number')->searchable(),
-                Tables\Columns\TextColumn::make('name')->searchable(),
-                Tables\Columns\TextColumn::make('category.name')->sortable(),
-                Tables\Columns\TextColumn::make('manufacturer')->searchable(),
+                Tables\Columns\TextColumn::make('asset_tag')->label(__('Asset Tag'))->searchable(),
+                Tables\Columns\TextColumn::make('serial_number')->label(__('Serial Number'))->searchable(),
+                Tables\Columns\TextColumn::make('name')->label(__('Name'))->searchable(),
+                Tables\Columns\TextColumn::make('category.name')->label(__('Category'))->sortable(),
+                Tables\Columns\TextColumn::make('manufacturer')->label(__('Manufacturer'))->searchable(),
                 Tables\Columns\TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'PURCHASED' => 'gray',
