@@ -34,8 +34,24 @@ class AssetResource extends Resource
                     ->helperText('Auto-generated on creation'),
                 Forms\Components\TextInput::make('serial_number')
                     ->unique(ignoreRecord: true),
-                Forms\Components\TextInput::make('name')
-                    ->required(),
+                Forms\Components\Tabs::make('Translations')
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('English')
+                            ->schema([
+                                Forms\Components\TextInput::make('name.en')
+                                    ->required()
+                                    ->label(__('Name (EN)')),
+                                Forms\Components\Textarea::make('notes.en')
+                                    ->label(__('Notes (EN)')),
+                            ]),
+                        Forms\Components\Tabs\Tab::make('Arabic')
+                            ->schema([
+                                Forms\Components\TextInput::make('name.ar')
+                                    ->label(__('Name (AR)')),
+                                Forms\Components\Textarea::make('notes.ar')
+                                    ->label(__('Notes (AR)')),
+                            ]),
+                    ])->columnSpanFull(),
                 Forms\Components\Select::make('category_id')
                     ->relationship('category', 'name')
                     ->searchable()
@@ -51,7 +67,6 @@ class AssetResource extends Resource
                     ->prefix('$'),
                 Forms\Components\DatePicker::make('warranty_expiry'),
                 Forms\Components\TextInput::make('location'),
-                Forms\Components\Textarea::make('notes')->columnSpanFull(),
             ]);
     }
 
@@ -157,8 +172,10 @@ class AssetResource extends Resource
                     ->icon('heroicon-o-printer')
                     ->url(fn (Asset $record) => route('asset.label', $record))
                     ->openUrlInNewTab(),
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
+            ->recordAction(Tables\Actions\ViewAction::class)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\BulkAction::make('bulkPrint')

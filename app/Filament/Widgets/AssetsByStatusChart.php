@@ -10,6 +10,7 @@ class AssetsByStatusChart extends ChartWidget
 {
     protected static ?string $heading = 'Assets by Status';
     protected static ?int $sort = 2;
+    protected int | string | array $columnSpan = 1;
 
     protected function getData(): array
     {
