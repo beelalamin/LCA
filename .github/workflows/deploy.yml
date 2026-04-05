@@ -1,0 +1,66 @@
+name: Deploy LC Assets
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Removed the local PHP setup and composer install. 
+      # Since we exclude 'vendor/' below, building on the runner does nothing.
+
+      - name: Sync files to server using rsync
+        uses: burnett01/rsync-deployments@5.2
+        with:
+          switches: -avzr --delete --omit-dir-times --no-perms --exclude='.env' --exclude='storage/' --exclude='bootstrap/cache/' --exclude='vendor/' --exclude='.git/' --exclude='.github/' --exclude='node_modules/'
+          path: ./
+          # UPDATE THIS PATH to your exact LC Assets directory on the server
+          remote_path: /home/lc-assets/htdocs/api.lcassets.qa
+          remote_host: ${{ secrets.SSH_HOST }}
+          remote_user: ${{ secrets.SSH_USERNAME }}
+          remote_key: ${{ secrets.SSH_KEY }}
+          remote_port: ${{ secrets.SSH_PORT }}
+
+      - name: Run post-deploy commands on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Set the directory variable so we only have to change it in one place
+            APP_DIR="/home/lc-assets/htdocs/api.lcassets.qa"
+            cd $APP_DIR
+
+            echo "📦 Installing server-side dependencies..."
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+            # Using Laravel's specific cache commands for better production performance
+            echo "🧹 Clearing and caching configurations..."
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan event:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            echo "🔧 Running migrations..."
+            php artisan migrate --force
+
+            echo "🔄 Restarting queue worker..."
+            sudo supervisorctl restart laravel-worker:* || true
+
+            echo "🔐 Setting permissions for web server..."
+            sudo chgrp -R www-data $APP_DIR
+            sudo chmod -R 775 storage bootstrap/cache
+
+            echo "🔄 Reloading PHP-FPM..."
+            sudo systemctl reload php8.2-fpm || true
+
+            echo "✅ Deployment completed successfully!"
