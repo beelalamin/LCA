@@ -9,6 +9,7 @@ use App\Models\Asset;
 use App\Models\Assignment;
 use App\Observers\AssetObserver;
 use App\Observers\AssignmentObserver;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         Asset::observe(AssetObserver::class);
         Assignment::observe(AssignmentObserver::class);
 
