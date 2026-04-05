@@ -9,7 +9,7 @@
 | Layer             | Technology                         |
 |-------------------|------------------------------------|
 | Backend + Frontend| FilamentPHP 3.x on Laravel 11      |
-| Database          | SQLite (default) / PostgreSQL      |
+| Database          | SQLite / MySQL / PostgreSQL       |
 | Auth & Roles      | Laravel Sanctum + Filament Shield  |
 | i18n              | English & Arabic (RTL)             |
 | Charts            | Filament ApexCharts                |
@@ -52,13 +52,24 @@ php artisan key:generate
 
 ### 4. Create the database
 
-The project defaults to **SQLite**. Create the database file:
-
+#### Option A: SQLite (Default)
 ```bash
 touch database/database.sqlite
 ```
 
-> To use PostgreSQL instead, update `DB_CONNECTION` and related variables in `.env`.
+#### Option B: MySQL
+1. Create a database in MySQL (e.g., `lc_assets`).
+2. Update `.env`:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=lc_assets
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_password
+   ```
+
+> **Note:** The permission tables migration has been updated to support UUIDs (`model_id`) for compatibility with our User model.
 
 ### 5. Run migrations with seed data
 
@@ -72,7 +83,9 @@ This creates all tables and seeds demo data including:
 - 3 employees
 - 4 assets with assignments and maintenance logs
 
-### 6. Create the super admin user
+### 6. Create the super admin user & assign role
+
+Run the following command to create the initial admin and assign the `super_admin` role:
 
 ```bash
 php artisan tinker --execute="
@@ -86,28 +99,21 @@ php artisan tinker --execute="
         'preferred_locale' => 'en',
     ]
 );
-echo 'User created: ' . \$user->email;"
+\$role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+\$user->assignRole('super_admin');
+echo '✅ Super Admin created and role assigned: ' . \$user->email;
+"
 ```
 
 ### 7. Initialize Filament Shield (roles & permissions)
 
-Generate all permissions and policies:
+Generate all permissions and policies for the resources:
 
 ```bash
 php artisan shield:generate --all
 ```
 
 When prompted, select the **admin** panel.
-
-### 8. Assign `super_admin` role
-
-```bash
-php artisan tinker --execute="
-\$user = \App\Models\User::where('email', 'admin@luxurycode.qa')->firstOrFail();
-\$role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
-\$user->assignRole('super_admin');
-echo 'super_admin role assigned to: ' . \$user->email;"
-```
 
 ### 9. Install frontend dependencies & build
 
