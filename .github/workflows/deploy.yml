@@ -12,16 +12,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Removed the local PHP setup and composer install. 
-      # Since we exclude 'vendor/' below, building on the runner does nothing.
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build frontend assets
+        run: |
+          npm install
+          npm run build
 
       - name: Sync files to server using rsync
         uses: burnett01/rsync-deployments@5.2
         with:
           switches: -avzr --delete --omit-dir-times --no-perms --exclude='.env' --exclude='storage/' --exclude='bootstrap/cache/' --exclude='vendor/' --exclude='.git/' --exclude='.github/' --exclude='node_modules/'
           path: ./
-          # UPDATE THIS PATH to your exact LC Assets directory on the server
-          remote_path: /home/luxurycode/htdocs/lca.luxurycodeqa.com
+          # Updated to match your new domain folder
+          remote_path: /home/luxurycode/htdocs/lca.luxurycode.qa
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_key: ${{ secrets.SSH_KEY }}
@@ -35,14 +42,13 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # Set the directory variable so we only have to change it in one place
-            APP_DIR="/home/luxurycode/htdocs/lca.luxurycodeqa.com"
+            # Set the directory variable
+            APP_DIR="/home/luxurycode/htdocs/lca.luxurycode.qa"
             cd $APP_DIR
 
             echo "📦 Installing server-side dependencies..."
             composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-            # Using Laravel's specific cache commands for better production performance
             echo "🧹 Clearing and caching configurations..."
             php artisan optimize:clear
             php artisan config:cache
@@ -56,11 +62,12 @@ jobs:
             echo "🔄 Restarting queue worker..."
             sudo supervisorctl restart laravel-worker:* || true
 
-            echo "🔐 Setting permissions for web server..."
+            echo "🔐 Setting permissions..."
             sudo chgrp -R www-data $APP_DIR
             sudo chmod -R 775 storage bootstrap/cache
 
             echo "🔄 Reloading PHP-FPM..."
-            sudo systemctl reload php8.2-fpm || true
+            # Updated to 8.3 to match our stack
+            sudo systemctl reload php8.3-fpm || true
 
             echo "✅ Deployment completed successfully!"
