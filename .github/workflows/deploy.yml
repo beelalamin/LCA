@@ -61,12 +61,7 @@ jobs:
 
             echo "🔄 Restarting queue worker..."
             sudo supervisorctl restart laravel-worker:* || true
-
-            echo "🔐 Setting permissions..."
-            sudo chgrp -R www-data $APP_DIR
-            sudo chmod -R 775 storage bootstrap/cache
-
-            echo "🔄 Reloading PHP-FPM..."
-            sudo systemctl reload php8.3-fpm || true
+            # echo "🔄 Reloading PHP-FPM..."
+            # sudo systemctl reload php8.3-fpm || true
 
             echo "✅ Deployment completed successfully!"
