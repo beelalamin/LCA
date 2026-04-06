@@ -15,7 +15,7 @@ use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Filament\Models\Contracts\HasName;
 
-class User extends Authenticatable implements HasName
+class User extends Authenticatable implements HasName, FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, HasUuids, HasRoles, HasPanelShield;
@@ -66,5 +66,10 @@ class User extends Authenticatable implements HasName
     public function getFilamentName(): string
     {
         return $this->full_name ?? $this->email;
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true; 
     }
 }
