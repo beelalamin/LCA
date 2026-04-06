@@ -28,7 +28,7 @@ jobs:
           switches: -avzr --delete --omit-dir-times --no-perms --exclude='.env' --exclude='storage/' --exclude='bootstrap/cache/' --exclude='vendor/' --exclude='.git/' --exclude='.github/' --exclude='node_modules/'
           path: ./
           # Updated to match your new domain folder
-          remote_path: /home/luxurycode/htdocs/lca.luxurycode.qa
+          remote_path: /home/luxurycode/htdocs/lca.luxurycodeqa.com
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_key: ${{ secrets.SSH_KEY }}
@@ -43,7 +43,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             # Set the directory variable
-            APP_DIR="/home/luxurycode/htdocs/lca.luxurycode.qa"
+            APP_DIR="/home/luxurycode/htdocs/lca.luxurycodeqa.com"
             cd $APP_DIR
 
             echo "📦 Installing server-side dependencies..."
@@ -67,7 +67,6 @@ jobs:
             sudo chmod -R 775 storage bootstrap/cache
 
             echo "🔄 Reloading PHP-FPM..."
-            # Updated to 8.3 to match our stack
             sudo systemctl reload php8.3-fpm || true
 
             echo "✅ Deployment completed successfully!"
