@@ -31,9 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('LC Assets')
-            ->brandLogo(asset('images/lca-logo.png'))
-            ->brandLogoHeight('2.5rem')
+            ->brandLogo(fn () => view('filament.components.brand-logo'))
+            ->favicon(asset('images/lca-logo.png'))
             ->colors([
                 'primary' => Color::Amber,
             ])
