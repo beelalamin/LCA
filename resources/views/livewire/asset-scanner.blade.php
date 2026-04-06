@@ -13,37 +13,79 @@
             margin: 0 auto !important;
             width: 100% !important;
             object-fit: cover !important;
+            max-height: 400px;
         }
-        /* Style the default buttons from the library */
+        /* Beautify all library buttons */
         #reader button {
             background-color: rgb(245, 158, 11) !important; /* Amber 500 */
             color: white !important;
-            padding: 0.5rem 1rem !important;
-            border-radius: 0.5rem !important;
+            padding: 0.6rem 1.2rem !important;
+            border-radius: 0.75rem !important;
             font-weight: 700 !important;
             font-size: 0.875rem !important;
             border: none !important;
             cursor: pointer !important;
             transition: all 0.2s !important;
-            margin: 10px auto !important;
+            margin: 8px auto !important;
             display: block !important;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.025em !important;
         }
         #reader button:hover {
             background-color: rgb(217, 119, 6) !important; /* Amber 600 */
+            transform: translateY(-1px);
         }
+        #reader button:active {
+            transform: translateY(0);
+        }
+        /* Beautify the 'Select File' link to look like a subtle button */
         #reader a {
-            color: rgb(245, 158, 11) !important;
-            text-decoration: underline !important;
-            font-size: 0.875rem !important;
-            margin-top: 10px !important;
+            color: rgb(156, 163, 175) !important; /* Gray 400 */
+            text-decoration: none !important;
+            font-size: 0.75rem !important;
+            font-weight: 600 !important;
+            margin-top: 12px !important;
             display: block !important;
             text-align: center !important;
+            opacity: 0.8 !important;
+            transition: opacity 0.2s !important;
+        }
+        #reader a:hover {
+            opacity: 1 !important;
+            text-decoration: underline !important;
+        }
+        /* Hide unnecessary text/status messages from the library */
+        #reader__status_span {
+            display: none !important;
+        }
+        #reader__dashboard_section_csr span {
+            display: none !important;
+        }
+        /* Hide the 'Launching Camera' button if video is already showing */
+        #reader video ~ #reader__dashboard_section_csr button:first-child {
+            display: none !important;
+        }
+        /* Improve the camera selector appearance */
+        #reader select {
+            background-color: #1f2937 !important; /* gray-800 */
+            color: white !important;
+            border: 1px solid #374151 !important; /* gray-700 */
+            border-radius: 0.5rem !important;
+            padding: 4px 8px !important;
+            font-size: 0.75rem !important;
+            margin: 10px auto !important;
+            display: block !important;
         }
     </style>
     <div wire:ignore 
          id="reader" 
-         class="w-full overflow-hidden border-2 border-amber-500/20 rounded-xl shadow-inner bg-gray-950" 
+         class="w-full overflow-hidden border-2 border-amber-500/10 rounded-xl shadow-inner bg-gray-950 flex flex-col justify-center" 
          style="min-height: 350px;">
+         <div id="scanner-placeholder" class="flex flex-col items-center justify-center p-8 space-y-4">
+             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+             <p class="text-xs text-amber-500/50 font-bold uppercase tracking-widest">{{ __('Initializing Camera...') }}</p>
+         </div>
     </div>
 
     <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
@@ -66,7 +108,7 @@
     </div>
 
     <script>
-        let html5QrcodeScanner = null;
+        window.html5QrcodeScanner = window.html5QrcodeScanner || null;
 
         function onScanSuccess(decodedText, decodedResult) {
             console.log(`Scan Result: ${decodedText}`);
@@ -78,80 +120,78 @@
              const element = document.getElementById('reader');
              if (!element) return;
 
+             const placeholder = document.getElementById('scanner-placeholder');
+
              // Clean up previous instance if exists
-             if (html5QrcodeScanner) {
+             if (window.html5QrcodeScanner) {
                  try {
-                     await html5QrcodeScanner.clear();
+                     await window.html5QrcodeScanner.clear();
                  } catch (e) {
-                     console.error("Failed to clear scanner", e);
+                     console.warn("Expected error clearing scanner", e);
                  }
-                 html5QrcodeScanner = null;
+                 window.html5QrcodeScanner = null;
              }
 
-             html5QrcodeScanner = new Html5QrcodeScanner(
+             if (placeholder) placeholder.style.display = 'flex';
+
+             window.html5QrcodeScanner = new Html5QrcodeScanner(
                 "reader", 
                 { 
-                    fps: 20, // Increased for better barcode detection
+                    fps: 20, 
                     qrbox: {width: 250, height: 250},
                     rememberLastUsedCamera: true,
                     aspectRatio: 1.0,
+                    showTorchButtonIfSupported: true,
                     videoConstraints: {
                         facingMode: "environment"
                     },
-                    formatsToSupport: [ 
-                        0, // QR_CODE
-                        1, // AZTEC
-                        2, // CODABAR
-                        3, // CODE_39
-                        4, // CODE_93
-                        5, // CODE_128
-                        6, // DATA_MATRIX
-                        7, // EAN_8
-                        8, // EAN_13
-                        9, // ITF
-                        10, // MAXICODE
-                        11, // PDF_417
-                        12, // RSS_14
-                        13, // RSS_EXPANDED
-                        14, // UPC_A
-                        15, // UPC_E
-                        16  // UPC_EAN_EXTENSION
-                    ]
+                    formatsToSupport: [0, 2, 3, 4, 5, 7, 8, 9, 14, 15] // Common QR and Barcode formats
                 },
                 /* verbose= */ false
             );
-            html5QrcodeScanner.render(onScanSuccess);
+            
+            window.html5QrcodeScanner.render(onScanSuccess);
+
+            // Hide placeholder after a short delay to allow camera load
+            setTimeout(() => {
+                if (placeholder) placeholder.style.display = 'none';
+            }, 1000);
         }
 
-        // Handle modal opens/Livewire refreshes
-        window.addEventListener('modal-opened', (event) => {
-            if (event.detail.id === 'scanner-modal') {
-                 console.log('Scanner modal opened, initializing...');
-                 setTimeout(initScanner, 400);
-            }
-        });
-
-        window.addEventListener('open-modal', (event) => {
-            if (event.detail.id === 'scanner-modal') {
-                 console.log('Scanner open-modal triggered, initializing...');
-                 setTimeout(initScanner, 400);
-            }
-        });
-
-        // Cleanup on modal close
-        window.addEventListener('modal-closed', async (event) => {
-            if (event.detail.id === 'scanner-modal' && html5QrcodeScanner) {
+        async function cleanupScanner() {
+            if (window.html5QrcodeScanner) {
                 try {
-                    await html5QrcodeScanner.clear();
-                    html5QrcodeScanner = null;
-                    console.log('Scanner cleared on modal close');
+                    await window.html5QrcodeScanner.clear();
+                    window.html5QrcodeScanner = null;
+                    console.log('Scanner destroyed successfully');
                 } catch (e) {
-                    console.error("Failed to clear scanner on close", e);
+                    console.warn("Cleanup error (likely already stopped)", e);
                 }
             }
+        }
+
+        // Listen for ANY event that means the modal is gone
+        const modalEvents = ['modal-closed', 'close-modal', 'filament-modal-close', 'filament-modal-closed'];
+        modalEvents.forEach(eventName => {
+            window.addEventListener(eventName, (event) => {
+                if (!event.detail || event.detail.id === 'scanner-modal') {
+                    cleanupScanner();
+                }
+            });
         });
-        
+
+        // Listen for ANY event that means the modal is open
+        const openEvents = ['modal-opened', 'open-modal', 'filament-modal-open'];
+        openEvents.forEach(eventName => {
+            window.addEventListener(eventName, (event) => {
+                if (!event.detail || event.detail.id === 'scanner-modal') {
+                    console.log(`Scanner event triggered: ${eventName}`);
+                    setTimeout(initScanner, 400);
+                }
+            });
+        });
+
         // Fallback for direct page access
-        setTimeout(initScanner, 500);
+        setTimeout(initScanner, 600);
     </script>
 </div>

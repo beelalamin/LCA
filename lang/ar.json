@@ -105,5 +105,6 @@
     "Switch to": "التبديل إلى",
     "Assets by Category": "الأصول حسب التصنيف",
     "Assets by Status": "الأصول حسب الحالة",
-    "Asset Condition Out (Last 10)": "حالة الأصول عند الصرف (آخر 10)"
+    "Asset Condition Out (Last 10)": "حالة الأصول عند الصرف (آخر 10)",
+    "Initializing Camera...": "جاري تشغيل الكاميرا..."
 }
