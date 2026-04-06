@@ -13,23 +13,23 @@ class AssetStatsWidget extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Total Assets', Asset::count())
-                ->description('All recorded assets')
+            Stat::make(__('Total Assets'), Asset::count())
+                ->description(__('All recorded assets'))
                 ->descriptionIcon('heroicon-m-computer-desktop')
                 ->color('primary'),
                 
-            Stat::make('Available', Asset::where('status', 'AVAILABLE')->count())
-                ->description('Ready for assignment')
+            Stat::make(__('Available'), Asset::where('status', 'AVAILABLE')->count())
+                ->description(__('Ready for assignment'))
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success'),
                 
-            Stat::make('Assigned', Asset::where('status', 'ASSIGNED')->count())
-                ->description('Currently checked out')
+            Stat::make(__('Assigned'), Asset::where('status', 'ASSIGNED')->count())
+                ->description(__('Currently checked out'))
                 ->descriptionIcon('heroicon-m-arrow-right-on-rectangle')
                 ->color('warning'),
                 
-            Stat::make('In Repair', Asset::where('status', 'IN_REPAIR')->count())
-                ->description('Currently undergoing maintenance')
+            Stat::make(__('In Repair'), Asset::where('status', 'IN_REPAIR')->count())
+                ->description(__('Currently undergoing maintenance'))
                 ->descriptionIcon('heroicon-m-wrench-screwdriver')
                 ->color('danger'),
         ];

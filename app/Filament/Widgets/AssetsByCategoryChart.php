@@ -8,7 +8,12 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 class AssetsByCategoryChart extends ApexChartWidget
 {
     protected static ?string $chartId = 'assetsByCategoryChart';
-    protected static ?string $heading = 'Assets by Category';
+    
+    public function getHeading(): string
+    {
+        return __('Assets by Category');
+    }
+
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 1;
 
@@ -23,7 +28,7 @@ class AssetsByCategoryChart extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'Assets',
+                    'name' => __('Assets'),
                     'data' => $data->pluck('assets_count')->toArray(),
                 ],
             ],

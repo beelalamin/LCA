@@ -16,6 +16,16 @@ class EmployeeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+    public static function getModelLabel(): string
+    {
+        return __('Employee');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Employees');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

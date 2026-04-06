@@ -8,7 +8,11 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 class AssetsByConditionChart extends ApexChartWidget
 {
     protected static ?string $chartId = 'assetsByConditionChart';
-    protected static ?string $heading = 'Asset Condition Out (Last 10)';
+
+    public function getHeading(): string
+    {
+        return __('Asset Condition Out (Last 10)');
+    }
     protected static ?int $sort = 3;
 
     protected function getOptions(): array
@@ -22,7 +26,7 @@ class AssetsByConditionChart extends ApexChartWidget
                 'type' => 'pie',
                 'height' => 300,
             ],
-            'labels' => $data->pluck('condition_out')->toArray(),
+            'labels' => $data->pluck('condition_out')->map(fn($item) => __($item))->toArray(),
             'series' => $data->pluck('count')->map(fn($item) => (int) $item)->toArray(),
         ];
     }

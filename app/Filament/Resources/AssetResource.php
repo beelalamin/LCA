@@ -49,7 +49,7 @@ class AssetResource extends Resource
                 Forms\Components\TextInput::make('asset_tag')
                     ->disabled()
                     ->dehydrated(false)
-                    ->helperText('Auto-generated on creation'),
+                    ->helperText(__('Auto-generated on creation')),
                 Forms\Components\TextInput::make('serial_number')
                     ->unique(ignoreRecord: true),
                 Forms\Components\Tabs::make('Translations')
@@ -92,16 +92,16 @@ class AssetResource extends Resource
     {
         return $infolist
             ->schema([
-                Section::make('Core Identification')
+                Section::make(__('Core Identification'))
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('name')
-                                    ->label('Asset Name')
+                                    ->label(__('Asset Name'))
                                     ->weight('bold')
                                     ->size('lg'),
                                 TextEntry::make('asset_tag')
-                                    ->label('Asset Tag')
+                                    ->label(__('Asset Tag'))
                                     ->copyable()
                                     ->icon('heroicon-m-qr-code')
                                     ->color('primary'),
@@ -120,7 +120,7 @@ class AssetResource extends Resource
 
                 Grid::make(2)
                     ->schema([
-                        Section::make('Technical Details')
+                        Section::make(__('Technical Details'))
                             ->schema([
                                 TextEntry::make('category.name'),
                                 TextEntry::make('manufacturer'),
@@ -130,7 +130,7 @@ class AssetResource extends Resource
                                     ->color('info'),
                             ])->columnSpan(1),
 
-                        Section::make('Financial & Warranty')
+                        Section::make(__('Financial & Warranty'))
                             ->schema([
                                 TextEntry::make('purchase_date')
                                     ->date(),
@@ -143,18 +143,18 @@ class AssetResource extends Resource
                             ])->columnSpan(1),
                     ]),
 
-                Section::make('Location & Ownership')
+                Section::make(__('Location & Ownership'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('location')
                                     ->icon('heroicon-m-map-pin'),
                                 TextEntry::make('creator.full_name')
-                                    ->label('Registered By'),
+                                    ->label(__('Registered By')),
                             ]),
                     ]),
 
-                Section::make('Additional Information')
+                Section::make(__('Additional Information'))
                     ->schema([
                         TextEntry::make('notes')
                             ->markdown()

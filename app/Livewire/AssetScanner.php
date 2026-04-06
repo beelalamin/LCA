@@ -21,7 +21,7 @@ class AssetScanner extends Component
             $this->redirect(AssetResource::getUrl('view', ['record' => $asset]));
         } else {
             Notification::make()
-                ->title('Asset not found')
+                ->title(__('Asset not found'))
                 ->danger()
                 ->send();
             

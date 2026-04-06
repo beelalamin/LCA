@@ -8,7 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class AssetsByStatusChart extends ChartWidget
 {
-    protected static ?string $heading = 'Assets by Status';
+    public function getHeading(): string
+    {
+        return __('Assets by Status');
+    }
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 1;
 
@@ -22,7 +25,7 @@ class AssetsByStatusChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Assets',
+                    'label' => __('Assets'),
                     'data' => array_values($data),
                     'backgroundColor' => [
                         'rgba(54, 162, 235, 0.5)', // AVAILABLE
@@ -33,7 +36,7 @@ class AssetsByStatusChart extends ChartWidget
                     ],
                 ]
             ],
-            'labels' => array_keys($data),
+            'labels' => array_map('__', array_keys($data)),
         ];
     }
 
