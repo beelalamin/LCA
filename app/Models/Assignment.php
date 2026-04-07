@@ -17,6 +17,8 @@ class Assignment extends Model
         'checked_out_at' => 'datetime',
         'checked_in_at' => 'datetime',
         'is_active' => 'boolean',
+        'condition_out' => \App\Enums\ConditionRating::class,
+        'condition_in' => \App\Enums\ConditionRating::class,
     ];
 
     public function asset(): BelongsTo

@@ -47,6 +47,7 @@ class User extends Authenticatable implements HasName, FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'role' => \App\Enums\UserRole::class,
         ];
     }
 

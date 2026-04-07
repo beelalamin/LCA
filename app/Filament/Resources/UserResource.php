@@ -30,22 +30,27 @@ class UserResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('full_name')
+                    ->label(__('Full Name'))
                     ->required(),
                 Forms\Components\TextInput::make('email')
+                    ->label(__('Email'))
                     ->email()
                     ->required()
                     ->unique(ignoreRecord: true),
                 Forms\Components\Select::make('role')
+                    ->label(__('Role'))
                     ->options([
-                        'ADMIN' => 'Admin',
-                        'TECHNICIAN' => 'Technician',
+                        'ADMIN' => __('Admin'),
+                        'TECHNICIAN' => __('Technician'),
                     ])
                     ->required(),
                 Forms\Components\TextInput::make('password')
+                    ->label(__('Password'))
                     ->password()
                     ->dehydrated(fn ($state) => filled($state))
                     ->required(fn (string $context): bool => $context === 'create'),
                 Forms\Components\Toggle::make('is_active')
+                    ->label(__('Active'))
                     ->default(true),
             ]);
     }
@@ -54,17 +59,28 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('full_name')->searchable(),
-                Tables\Columns\TextColumn::make('email')->searchable(),
-                Tables\Columns\TextColumn::make('role')->badge(),
-                Tables\Columns\IconColumn::make('is_active')->boolean(),
-                Tables\Columns\TextColumn::make('created_at')->dateTime(),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label(__('Full Name'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->label(__('Email'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('role')
+                    ->label(__('Role'))
+                    ->badge(),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label(__('Active'))
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label(__('Created At'))
+                    ->dateTime(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('role')
+                    ->label(__('Role'))
                     ->options([
-                        'ADMIN' => 'Admin',
-                        'TECHNICIAN' => 'Technician',
+                        'ADMIN' => __('Admin'),
+                        'TECHNICIAN' => __('Technician'),
                     ]),
             ])
             ->actions([

@@ -2,7 +2,9 @@
 
 namespace App\Enums;
 
-enum AssetStatus: string
+use Filament\Support\Contracts\HasLabel;
+
+enum AssetStatus: string implements HasLabel
 {
     case PURCHASED = 'PURCHASED';
     case AVAILABLE = 'AVAILABLE';
@@ -10,4 +12,9 @@ enum AssetStatus: string
     case IN_REPAIR = 'IN_REPAIR';
     case RETIRED = 'RETIRED';
     case DISPOSED = 'DISPOSED';
+
+    public function getLabel(): ?string
+    {
+        return __($this->value);
+    }
 }

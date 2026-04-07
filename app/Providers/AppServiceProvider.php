@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Asset;
 use App\Models\Assignment;
+use App\Models\MaintenanceLog;
 use App\Observers\AssetObserver;
 use App\Observers\AssignmentObserver;
+use App\Observers\MaintenanceLogObserver;
 use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
         Asset::observe(AssetObserver::class);
         Assignment::observe(AssignmentObserver::class);
+        MaintenanceLog::observe(MaintenanceLogObserver::class);
 
         DB::listen(function ($query) {
              if ($query->time > 100) { // log queries slower than 100ms

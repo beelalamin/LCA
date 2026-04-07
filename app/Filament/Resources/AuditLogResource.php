@@ -53,10 +53,29 @@ class AuditLogResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('performed_at')->label(__('Performed At'))->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('action')->label(__('Action'))->badge(),
-                Tables\Columns\TextColumn::make('asset.name')->label(__('Asset'))->searchable(),
-                Tables\Columns\TextColumn::make('performedBy.full_name')->label(__('User'))->searchable(),
+                Tables\Columns\TextColumn::make('performed_at')
+                    ->label(__('Performed At'))
+                    ->dateTime()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('action')
+                    ->label(__('Action'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'REGISTERED' => 'info',
+                        'CHECKED_OUT' => 'warning',
+                        'CHECKED_IN' => 'success',
+                        'STATUS_CHANGED' => 'gray',
+                        'MAINTENANCE_SCHEDULED' => 'warning',
+                        'MAINTENANCE_COMPLETED' => 'success',
+                        default => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('asset.name')
+                    ->label(__('Asset'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('performedBy.full_name')
+                    ->label(__('User'))
+                    ->default(__('System'))
+                    ->searchable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('action')
@@ -65,17 +84,13 @@ class AuditLogResource extends Resource
                         'CHECKED_OUT' => 'CHECKED_OUT',
                         'CHECKED_IN' => 'CHECKED_IN',
                         'STATUS_CHANGED' => 'STATUS_CHANGED',
-                        'BULK_IMPORTED' => 'BULK_IMPORTED',
-                        'LABEL_PRINTED' => 'LABEL_PRINTED'
+                        'MAINTENANCE_SCHEDULED' => 'MAINTENANCE_SCHEDULED',
+                        'MAINTENANCE_COMPLETED' => 'MAINTENANCE_COMPLETED',
                     ]),
                 Tables\Filters\SelectFilter::make('performed_by')
                     ->relationship('performedBy', 'full_name'),
             ])
-            ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                ])->icon('heroicon-m-ellipsis-vertical')
-            ])
+            ->actions([])
             ->bulkActions([])
             ->defaultSort('performed_at', 'desc');
     }

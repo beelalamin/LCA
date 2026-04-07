@@ -22,6 +22,7 @@ class Asset extends Model
         'purchase_date' => 'date',
         'warranty_expiry' => 'date',
         'purchase_cost' => 'decimal:2',
+        'status' => \App\Enums\AssetStatus::class,
     ];
 
     public function category(): BelongsTo

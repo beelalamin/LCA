@@ -31,16 +31,27 @@ class EmployeeResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('employee_number')
+                    ->label(__('Employee Number'))
                     ->required()
                     ->unique(ignoreRecord: true),
-                Forms\Components\TextInput::make('full_name_en')->required(),
-                Forms\Components\TextInput::make('full_name_ar'),
-                Forms\Components\TextInput::make('email')->email(),
-                Forms\Components\TextInput::make('phone'),
-                Forms\Components\TextInput::make('department'),
-                Forms\Components\TextInput::make('job_title'),
-                Forms\Components\TextInput::make('location'),
+                Forms\Components\TextInput::make('full_name_en')
+                    ->label(__('Full Name (EN)'))
+                    ->required(),
+                Forms\Components\TextInput::make('full_name_ar')
+                    ->label(__('Full Name (AR)')),
+                Forms\Components\TextInput::make('email')
+                    ->label(__('Email'))
+                    ->email(),
+                Forms\Components\TextInput::make('phone')
+                    ->label(__('Phone')),
+                Forms\Components\TextInput::make('department')
+                    ->label(__('Department')),
+                Forms\Components\TextInput::make('job_title')
+                    ->label(__('Job Title')),
+                Forms\Components\TextInput::make('location')
+                    ->label(__('Location')),
                 Forms\Components\Toggle::make('is_active')
+                    ->label(__('Active'))
                     ->default(true),
             ]);
     }

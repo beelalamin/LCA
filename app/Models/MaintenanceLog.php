@@ -17,6 +17,8 @@ class MaintenanceLog extends Model
         'scheduled_date' => 'date',
         'completed_date' => 'date',
         'cost' => 'decimal:2',
+        'type' => \App\Enums\MaintenanceType::class,
+        'status' => \App\Enums\MaintenanceStatus::class,
     ];
 
     public function asset(): BelongsTo

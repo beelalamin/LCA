@@ -20,7 +20,9 @@ class RecentAuditLogsWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('performed_at')->label(__('Performed at'))->dateTime(),
                 Tables\Columns\TextColumn::make('action')->label(__('Action'))->badge(),
                 Tables\Columns\TextColumn::make('asset.name')->label(__('Asset')),
-                Tables\Columns\TextColumn::make('performedBy.full_name')->label(__('User')),
+                Tables\Columns\TextColumn::make('performedBy.full_name')
+                    ->label(__('User'))
+                    ->default(__('System')),
             ])
             ->heading(__('Recent Audit Logs'))
             ->paginated(false);

@@ -107,12 +107,12 @@ class AssetResource extends Resource
                                     ->color('primary'),
                                 TextEntry::make('status')
                                     ->badge()
-                                    ->color(fn (string $state): string => match ($state) {
-                                        'PURCHASED' => 'gray',
-                                        'AVAILABLE' => 'info',
-                                        'ASSIGNED' => 'success',
-                                        'IN_REPAIR' => 'warning',
-                                        'RETIRED', 'DISPOSED' => 'danger',
+                                    ->color(fn (AssetStatus $state): string => match ($state) {
+                                        AssetStatus::PURCHASED => 'gray',
+                                        AssetStatus::AVAILABLE => 'info',
+                                        AssetStatus::ASSIGNED => 'success',
+                                        AssetStatus::IN_REPAIR => 'warning',
+                                        AssetStatus::RETIRED, AssetStatus::DISPOSED => 'danger',
                                         default => 'gray',
                                     }),
                             ]),
@@ -176,19 +176,19 @@ class AssetResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label(__('Status'))
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'PURCHASED' => 'gray',
-                        'AVAILABLE' => 'info',
-                        'ASSIGNED' => 'success',
-                        'IN_REPAIR' => 'warning',
-                        'RETIRED', 'DISPOSED' => 'danger',
+                    ->color(fn (AssetStatus $state): string => match ($state) {
+                        AssetStatus::PURCHASED => 'gray',
+                        AssetStatus::AVAILABLE => 'info',
+                        AssetStatus::ASSIGNED => 'success',
+                        AssetStatus::IN_REPAIR => 'warning',
+                        AssetStatus::RETIRED, AssetStatus::DISPOSED => 'danger',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('purchase_date')->date()->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->options(\App\Enums\AssetStatus::class),
+                    ->options(fn () => collect(AssetStatus::cases())->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])->toArray()),
                 Tables\Filters\SelectFilter::make('category_id')
                     ->relationship('category', 'name'),
             ])

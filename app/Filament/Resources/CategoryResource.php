@@ -31,8 +31,10 @@ class CategoryResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->label(__('Name'))
                     ->required(),
                 Forms\Components\Select::make('parent_id')
+                    ->label(__('Parent Category'))
                     ->relationship('parent', 'name')
                     ->searchable()
                     ->preload(),
