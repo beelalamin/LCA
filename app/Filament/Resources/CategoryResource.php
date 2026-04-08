@@ -26,6 +26,16 @@ class CategoryResource extends Resource
         return __('Categories');
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return __('Categories');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Asset Management');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -15,21 +15,8 @@ class AuditLogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?int $navigationSort = 3;
-    protected static ?string $navigationLabel = 'Activity Logs';
-    protected static ?string $pluralModelLabel = 'Activity Logs';
-    protected static ?string $modelLabel = 'Activity Log';
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('System Administration');
-    }
 
     public static function getNavigationLabel(): string
-    {
-        return __('Activity Logs');
-    }
-
-    public static function getPluralModelLabel(): string
     {
         return __('Activity Logs');
     }
@@ -37,6 +24,16 @@ class AuditLogResource extends Resource
     public static function getModelLabel(): string
     {
         return __('Activity Log');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Activity Logs');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('System Administration');
     }
 
     public static function canCreate(): bool

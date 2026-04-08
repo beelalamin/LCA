@@ -6,8 +6,8 @@ use Filament\Support\Contracts\HasLabel;
 
 enum UserRole: string implements HasLabel
 {
-    case ADMIN = 'ADMIN';
-    case TECHNICIAN = 'TECHNICIAN';
+    case ADMIN = 'admin';
+    case TECHNICIAN = 'technician';
 
     public function getLabel(): ?string
     {

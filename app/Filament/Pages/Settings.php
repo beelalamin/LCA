@@ -16,17 +16,29 @@ class Settings extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static string $view = 'filament.pages.settings';
+    protected static ?int $navigationSort = 4;
+    protected static bool $shouldRegisterNavigation = true;
     
     public ?array $data = [];
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Settings');
+    }
+
+    public function getTitle(): string
+    {
+        return __('Settings');
+    }
 
     public function mount(): void
     {
         $this->data = [
-            'label_width' => Setting::get('label_width', 144),
-            'label_height' => Setting::get('label_height', 72),
-            'label_padding' => Setting::get('label_padding', 5),
-            'columns_per_page' => Setting::get('columns_per_page', 1),
-            'print_type' => Setting::get('print_type', 'both'),
+            'label_width' => Setting::get('label_width', 140),
+            'label_height' => Setting::get('label_height', 75),
+            'label_padding' => Setting::get('label_padding', 10),
+            'columns_per_page' => Setting::get('columns_per_page', 4),
+            'print_type' => Setting::get('print_type', 'qrcode'),
         ];
         
         $this->form->fill($this->data);
@@ -77,6 +89,36 @@ class Settings extends Page
                     ]),
             ])
             ->statePath('data');
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('reset')
+                ->label(__('Reset to Default'))
+                ->color('gray')
+                ->requiresConfirmation()
+                ->action(function () {
+                    $defaults = [
+                        'label_width' => 140,
+                        'label_height' => 75,
+                        'label_padding' => 10,
+                        'columns_per_page' => 4,
+                        'print_type' => 'qrcode',
+                    ];
+
+                    foreach ($defaults as $key => $value) {
+                        Setting::set($key, $value);
+                    }
+
+                    $this->mount();
+                    
+                    Notification::make()
+                        ->title(__('Settings reset to default'))
+                        ->success()
+                        ->send();
+                }),
+        ];
     }
 
     protected function getFormActions(): array

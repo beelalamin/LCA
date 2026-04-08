@@ -42,19 +42,26 @@ class AssetResource extends Resource
         return __('Assets');
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return __('Assets');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('asset_tag')
+                    ->label(__('Asset Tag'))
                     ->disabled()
                     ->dehydrated(false)
                     ->helperText(__('Auto-generated on creation')),
                 Forms\Components\TextInput::make('serial_number')
+                    ->label(__('Serial Number'))
                     ->unique(ignoreRecord: true),
                 Forms\Components\Tabs::make('Translations')
                     ->tabs([
-                        Forms\Components\Tabs\Tab::make('English')
+                        Forms\Components\Tabs\Tab::make(__('English'))
                             ->schema([
                                 Forms\Components\TextInput::make('name.en')
                                     ->required()
@@ -62,7 +69,7 @@ class AssetResource extends Resource
                                 Forms\Components\Textarea::make('notes.en')
                                     ->label(__('Notes (EN)')),
                             ]),
-                        Forms\Components\Tabs\Tab::make('Arabic')
+                        Forms\Components\Tabs\Tab::make(__('Arabic'))
                             ->schema([
                                 Forms\Components\TextInput::make('name.ar')
                                     ->label(__('Name (AR)')),
@@ -71,21 +78,29 @@ class AssetResource extends Resource
                             ]),
                     ])->columnSpanFull(),
                 Forms\Components\Select::make('category_id')
+                    ->label(__('Category'))
                     ->relationship('category', 'name')
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->getTranslation('name', app()->getLocale()))
                     ->searchable()
                     ->preload(),
-                Forms\Components\TextInput::make('manufacturer'),
-                Forms\Components\TextInput::make('model'),
+                Forms\Components\TextInput::make('manufacturer')
+                    ->label(__('Manufacturer')),
+                Forms\Components\TextInput::make('model')
+                    ->label(__('Model')),
                 Forms\Components\Select::make('status')
+                    ->label(__('Status'))
                     ->options(\App\Enums\AssetStatus::class)
                     ->default(\App\Enums\AssetStatus::PURCHASED->value),
-                Forms\Components\DatePicker::make('purchase_date'),
+                Forms\Components\DatePicker::make('purchase_date')
+                    ->label(__('Purchase Date')),
                 Forms\Components\TextInput::make('purchase_cost')
+                    ->label(__('Purchase Cost'))
                     ->numeric()
                     ->prefix('$'),
-                Forms\Components\DatePicker::make('warranty_expiry'),
-                Forms\Components\TextInput::make('location'),
+                Forms\Components\DatePicker::make('warranty_expiry')
+                    ->label(__('Warranty Expiry')),
+                Forms\Components\TextInput::make('location')
+                    ->label(__('Location')),
             ]);
     }
 
@@ -107,6 +122,7 @@ class AssetResource extends Resource
                                     ->icon('heroicon-m-qr-code')
                                     ->color('primary'),
                                 TextEntry::make('status')
+                                    ->label(__('Status'))
                                     ->badge()
                                     ->color(fn (AssetStatus $state): string => match ($state) {
                                         AssetStatus::PURCHASED => 'gray',
@@ -123,10 +139,14 @@ class AssetResource extends Resource
                     ->schema([
                         Section::make(__('Technical Details'))
                             ->schema([
-                                TextEntry::make('category.name'),
-                                TextEntry::make('manufacturer'),
-                                TextEntry::make('model'),
+                                TextEntry::make('category.name')
+                                    ->label(__('Category')),
+                                TextEntry::make('manufacturer')
+                                    ->label(__('Manufacturer')),
+                                TextEntry::make('model')
+                                    ->label(__('Model')),
                                 TextEntry::make('serial_number')
+                                    ->label(__('Serial Number'))
                                     ->copyable()
                                     ->color('info'),
                             ])->columnSpan(1),
@@ -134,11 +154,14 @@ class AssetResource extends Resource
                         Section::make(__('Financial & Warranty'))
                             ->schema([
                                 TextEntry::make('purchase_date')
+                                    ->label(__('Purchase Date'))
                                     ->date(),
                                 TextEntry::make('purchase_cost')
+                                    ->label(__('Purchase Cost'))
                                     ->prefix('$')
                                     ->numeric(),
                                 TextEntry::make('warranty_expiry')
+                                    ->label(__('Warranty Expiry'))
                                     ->date()
                                     ->color(fn ($record) => $record->warranty_expiry < now() ? 'danger' : 'success'),
                             ])->columnSpan(1),
@@ -149,6 +172,7 @@ class AssetResource extends Resource
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('location')
+                                    ->label(__('Location'))
                                     ->icon('heroicon-m-map-pin'),
                                 TextEntry::make('creator.full_name')
                                     ->label(__('Registered By')),
@@ -158,6 +182,7 @@ class AssetResource extends Resource
                 Section::make(__('Additional Information'))
                     ->schema([
                         TextEntry::make('notes')
+                            ->label(__('Notes'))
                             ->markdown()
                             ->columnSpanFull(),
                     ])
@@ -171,7 +196,10 @@ class AssetResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('asset_tag')->label(__('Asset Tag'))->searchable(),
                 Tables\Columns\TextColumn::make('serial_number')->label(__('Serial Number'))->searchable(),
-                Tables\Columns\TextColumn::make('name')->label(__('Name'))->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label(__('Name'))
+                    ->searchable()
+                    ->formatStateUsing(fn ($state, $record) => $record->getTranslation('name', app()->getLocale())),
                 Tables\Columns\TextColumn::make('category.name')
                     ->label(__('Category'))
                     ->sortable()
@@ -191,12 +219,17 @@ class AssetResource extends Resource
                 Tables\Columns\TextColumn::make('activeAssignment.employee.full_name_en')
                     ->label(__('Assigned To'))
                     ->placeholder(__('Not Assigned')),
-                Tables\Columns\TextColumn::make('purchase_date')->date()->sortable(),
+                Tables\Columns\TextColumn::make('purchase_date')
+                    ->label(__('Purchase Date'))
+                    ->date()
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
+                    ->label(__('Status'))
                     ->options(fn () => collect(AssetStatus::cases())->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])->toArray()),
                 Tables\Filters\SelectFilter::make('category_id')
+                    ->label(__('Category'))
                     ->relationship('category', 'name'),
             ])
             ->actions([
@@ -221,6 +254,7 @@ class AssetResource extends Resource
                                 ->default(ConditionRating::GOOD->value)
                                 ->required(),
                             Forms\Components\Textarea::make('notes')
+                                ->label(__('Notes'))
                         ])
                         ->action(function (Asset $record, array $data) {
                             Assignment::create([
@@ -252,6 +286,7 @@ class AssetResource extends Resource
                                 ->default(ConditionRating::GOOD->value)
                                 ->required(),
                             Forms\Components\Textarea::make('notes')
+                                ->label(__('Notes'))
                         ])
                         ->action(function (Asset $record, array $data) {
                             $assignment = $record->activeAssignment;
@@ -294,8 +329,6 @@ class AssetResource extends Resource
                         ->label(__('Print Labels'))
                         ->icon('heroicon-o-printer')
                         ->action(function (\Illuminate\Support\Collection $records) {
-                            // In a real app, this would merge PDFs. 
-                            // For simplicity, we can redirect or show link.
                             return redirect()->route('asset.bulk-labels', ['ids' => $records->pluck('id')->toArray()]);
                         }),
                     Tables\Actions\DeleteBulkAction::make(),
@@ -316,5 +349,10 @@ class AssetResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with(['category', 'creator']);
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Asset Management');
     }
 }

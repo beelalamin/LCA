@@ -26,6 +26,16 @@ class EmployeeResource extends Resource
         return __('Employees');
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return __('Employees');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Asset Management');
+    }
+
     public static function form(Form $form): Form
     {
         return $form

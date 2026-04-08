@@ -37,10 +37,10 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(fn () => view('filament.components.brand-logo'))
             ->favicon(asset('images/lca-logo.png'))
             ->userMenuItems([
-                MenuItem::make()
-                    ->label(fn() => __('Settings'))
-                    ->url(fn (): string => Settings::getUrl())
-                    ->icon('heroicon-o-cog-6-tooth'),
+                'account' => MenuItem::make()
+                    ->label(fn() => __('Profile'))
+                    ->url(fn (): string => \App\Filament\Pages\Profile::getUrl())
+                    ->icon('heroicon-o-user'),
             ])
             ->colors([
                 'primary' => Color::Amber,

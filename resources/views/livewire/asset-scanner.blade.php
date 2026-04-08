@@ -80,9 +80,12 @@
             <div id="reader-video-container" class="w-full h-full"></div>
             
             <!-- Centered Placeholder -->
-            <div id="scanner-ui-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-950/20 backdrop-blur-sm z-10 transition-opacity">
-                <div class="flex flex-col items-center justify-center space-y-4">
-                    <x-heroicon-o-viewfinder-circle class="w-20 h-20 text-amber-500 animate-pulse" />
+            <div id="scanner-ui-placeholder" class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                <div class="flex flex-col items-center justify-center space-y-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-24 h-24 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="#f59e0b" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75H6A2.25 2.25 0 0 0 3.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0 1 20.25 6v1.5m0 9V18A2.25 2.25 0 0 1 18 20.25h-1.5m-9 0H6A2.25 2.25 0 0 1 3.75 18v-1.5" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-3-3v6" />
+                    </svg>
                     <button onclick="startScanning()" class="scanner-btn !w-fit px-8 py-2.5 !text-xs tracking-widest uppercase">
                         {{ __('Start Scanning') }}
                     </button>
@@ -97,7 +100,7 @@
         <div class="scanner-controls">
             <select id="camera-select" style="display: none;"></select>
             <button id="stop-btn" onclick="stopScanning()" class="scanner-btn scanner-btn-secondary !text-xs !py-1.5 mb-4" style="display: none;">
-                {{ __('Stop Camera') }}
+                {{ __('Stop Scanning') }}
             </button>
         </div>
         <style>

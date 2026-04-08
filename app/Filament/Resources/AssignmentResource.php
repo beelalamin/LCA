@@ -25,6 +25,16 @@ class AssignmentResource extends Resource
         return __('Assignments');
     }
 
+    public static function getNavigationLabel(): string
+    {
+        return __('Assignments');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Asset Management');
+    }
+
     public static function canCreate(): bool
     {
         return false; // Created via Check Out action
@@ -53,11 +63,8 @@ class AssignmentResource extends Resource
                 Tables\Filters\SelectFilter::make('employee_id')->relationship('employee', 'full_name_en'),
                 Tables\Filters\SelectFilter::make('asset_id')->relationship('asset', 'name'),
             ])
-            ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                ])->icon('heroicon-m-ellipsis-vertical')
-            ])
+            ->actions([])
+            ->recordUrl(null)
             ->bulkActions([]);
     }
 

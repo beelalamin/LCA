@@ -19,7 +19,22 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?int $navigationSort = 1;
+
+    public static function getModelLabel(): string
+    {
+        return __('User');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Users');
+    }
     
+    public static function getNavigationLabel(): string
+    {
+        return __('Users');
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return __('System Administration');
@@ -40,15 +55,16 @@ class UserResource extends Resource
                 Forms\Components\Select::make('role')
                     ->label(__('Role'))
                     ->options([
-                        'ADMIN' => __('Admin'),
-                        'TECHNICIAN' => __('Technician'),
+                        'admin' => __('Admin'),
+                        'technician' => __('Technician'),
                     ])
                     ->required(),
                 Forms\Components\TextInput::make('password')
                     ->label(__('Password'))
                     ->password()
                     ->dehydrated(fn ($state) => filled($state))
-                    ->required(fn (string $context): bool => $context === 'create'),
+                    ->required(fn (string $context): bool => $context === 'create')
+                    ->visible(fn (string $context): bool => $context === 'create'),
                 Forms\Components\Toggle::make('is_active')
                     ->label(__('Active'))
                     ->default(true),
@@ -79,8 +95,8 @@ class UserResource extends Resource
                 Tables\Filters\SelectFilter::make('role')
                     ->label(__('Role'))
                     ->options([
-                        'ADMIN' => __('Admin'),
-                        'TECHNICIAN' => __('Technician'),
+                        'admin' => __('Admin'),
+                        'technician' => __('Technician'),
                     ]),
             ])
             ->actions([
