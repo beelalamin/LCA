@@ -224,9 +224,6 @@
         window.addEventListener('close-modal', handleClose);
         window.addEventListener('filament-modal-close', handleClose);
 
-        // Auto-start if it's already visible (direct load/refresh)
-        setTimeout(startScanning, 1000);
-
         // Cleanup on page hide or navigation
         window.addEventListener('pagehide', () => stopScanning());
         window.addEventListener('beforeunload', () => stopScanning());
