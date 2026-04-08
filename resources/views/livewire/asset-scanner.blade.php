@@ -96,7 +96,7 @@
 
         <div class="scanner-controls">
             <select id="camera-select" style="display: none;"></select>
-            <button id="stop-btn" onclick="stopScanning()" class="scanner-btn scanner-btn-secondary !text-xs !py-1.5" style="display: none;">
+            <button id="stop-btn" onclick="stopScanning()" class="scanner-btn scanner-btn-secondary !text-xs !py-1.5 mb-4" style="display: none;">
                 {{ __('Stop Camera') }}
             </button>
         </div>
@@ -114,7 +114,7 @@
             >
             <button 
                 wire:click="findAsset"
-                class="scanner-btn !w-auto flex-shrink-0 h-11 !m-0 flex items-center justify-center px-6 !text-xs whitespace-nowrap"
+                class="inline-flex items-center px-6 h-11 text-sm font-bold text-white !bg-amber-500 rounded-lg hover:!bg-amber-600 transition-all shadow-sm flex-shrink-0"
             >
                 {{ __('Search') }}
             </button>
