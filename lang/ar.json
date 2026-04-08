@@ -129,5 +129,19 @@
     "Notes (AR)": "ملاحظات (عربية)",
     "Performed At": "تاريخ التنفيذ",
     "Password": "كلمة المرور",
-    "Role": "الدور"
+    "Role": "الدور",
+    "Settings": "الإعدادات",
+    "Label Dimensions": "أبعاد الملصق",
+    "Adjust the size and spacing of your asset labels.": "ضبط حجم ومسافات ملصقات الأصول الخاصة بك.",
+    "Width (pt)": "العرض (نقطة)",
+    "Height (pt)": "الارتفاع (نقطة)",
+    "Padding (px)": "الحواشي (بكسل)",
+    "Layout & Printing": "التنسيق والطباعة",
+    "Columns per Page": "الأعمدة في الصفحة",
+    "Print Mode": "وضع الطباعة",
+    "Both QR & Barcode": "QR والباركود معاً",
+    "QR Code Only": "رمز QR فقط",
+    "Barcode Only": "باركود فقط",
+    "Save Settings": "حفظ الإعدادات",
+    "Settings saved successfully": "تم حفظ الإعدادات بنجاح"
 }

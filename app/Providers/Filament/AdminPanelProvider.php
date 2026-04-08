@@ -2,6 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Settings;
+use App\Models\Setting;
+use Filament\Navigation\MenuItem;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,6 +36,12 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->brandLogo(fn () => view('filament.components.brand-logo'))
             ->favicon(asset('images/lca-logo.png'))
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label(fn() => __('Settings'))
+                    ->url(fn (): string => Settings::getUrl())
+                    ->icon('heroicon-o-cog-6-tooth'),
+            ])
             ->colors([
                 'primary' => Color::Amber,
             ])

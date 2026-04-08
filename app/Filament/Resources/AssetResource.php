@@ -296,7 +296,7 @@ class AssetResource extends Resource
                         ->action(function (\Illuminate\Support\Collection $records) {
                             // In a real app, this would merge PDFs. 
                             // For simplicity, we can redirect or show link.
-                            return redirect()->route('asset.label', ['asset' => $records->first()->id]);
+                            return redirect()->route('asset.bulk-labels', ['ids' => $records->pluck('id')->toArray()]);
                         }),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
