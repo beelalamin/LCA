@@ -75,10 +75,12 @@ class EmployeeResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                 ])->icon('heroicon-m-ellipsis-vertical')
             ])
+            ->recordAction(Tables\Actions\ViewAction::class)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

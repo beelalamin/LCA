@@ -30,9 +30,20 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label(__('Name'))
-                    ->required(),
+                Forms\Components\Tabs::make('Translations')
+                    ->tabs([
+                        Forms\Components\Tabs\Tab::make('English')
+                            ->schema([
+                                Forms\Components\TextInput::make('name.en')
+                                    ->label(__('Name (EN)'))
+                                    ->required(),
+                            ]),
+                        Forms\Components\Tabs\Tab::make('Arabic')
+                            ->schema([
+                                Forms\Components\TextInput::make('name.ar')
+                                    ->label(__('Name (AR)')),
+                            ]),
+                    ])->columnSpanFull(),
                 Forms\Components\Select::make('parent_id')
                     ->label(__('Parent Category'))
                     ->relationship('parent', 'name')
@@ -45,8 +56,14 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label(__('Category'))->searchable(),
-                Tables\Columns\TextColumn::make('parent.name')->label(__('Parent Category'))->sortable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label(__('Category'))
+                    ->searchable()
+                    ->formatStateUsing(fn ($state, $record) => $record->getTranslation('name', app()->getLocale())),
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label(__('Parent Category'))
+                    ->sortable()
+                    ->formatStateUsing(fn ($state, $record) => $record->parent?->getTranslation('name', app()->getLocale())),
                 Tables\Columns\TextColumn::make('assets_count')->label(__('Assets Count'))->counts('assets'),
             ])
             ->filters([

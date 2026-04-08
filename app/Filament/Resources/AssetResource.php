@@ -72,6 +72,7 @@ class AssetResource extends Resource
                     ])->columnSpanFull(),
                 Forms\Components\Select::make('category_id')
                     ->relationship('category', 'name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->getTranslation('name', app()->getLocale()))
                     ->searchable()
                     ->preload(),
                 Forms\Components\TextInput::make('manufacturer'),
@@ -171,7 +172,10 @@ class AssetResource extends Resource
                 Tables\Columns\TextColumn::make('asset_tag')->label(__('Asset Tag'))->searchable(),
                 Tables\Columns\TextColumn::make('serial_number')->label(__('Serial Number'))->searchable(),
                 Tables\Columns\TextColumn::make('name')->label(__('Name'))->searchable(),
-                Tables\Columns\TextColumn::make('category.name')->label(__('Category'))->sortable(),
+                Tables\Columns\TextColumn::make('category.name')
+                    ->label(__('Category'))
+                    ->sortable()
+                    ->formatStateUsing(fn ($state, $record) => $record->category?->getTranslation('name', app()->getLocale())),
                 Tables\Columns\TextColumn::make('manufacturer')->label(__('Manufacturer'))->searchable(),
                 Tables\Columns\TextColumn::make('status')
                     ->label(__('Status'))
@@ -184,6 +188,9 @@ class AssetResource extends Resource
                         AssetStatus::RETIRED, AssetStatus::DISPOSED => 'danger',
                         default => 'gray',
                     }),
+                Tables\Columns\TextColumn::make('activeAssignment.employee.full_name_en')
+                    ->label(__('Assigned To'))
+                    ->placeholder(__('Not Assigned')),
                 Tables\Columns\TextColumn::make('purchase_date')->date()->sortable(),
             ])
             ->filters([
@@ -200,7 +207,8 @@ class AssetResource extends Resource
                         ->label(__('Check Out'))
                         ->icon('heroicon-o-arrow-right-start-on-rectangle')
                         ->color('success')
-                        ->visible(fn (Asset $record) => $record->status === AssetStatus::AVAILABLE->value)
+                        ->visible(fn (Asset $record) => in_array($record->status, [AssetStatus::AVAILABLE, AssetStatus::PURCHASED]))
+                        ->modalHeading(__('Assign Asset to Employee'))
                         ->form([
                             Forms\Components\Select::make('employee_id')
                                 ->label(__('Employee'))
