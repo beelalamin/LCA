@@ -103,18 +103,19 @@
     </div>
 
     <!-- Improved Search Section -->
-    <div class="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mt-4">
+    <div class="p-4 bg-gray-900 rounded-xl border border-gray-800 shadow-sm mt-4">
         <label class="block text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">{{ __('Manual Entry') }}</label>
         <div class="flex items-center gap-3">
             <input 
                 type="text" 
                 wire:model="asset_tag"
                 placeholder="{{ __('Tag or Serial #') }}"
-                class="flex-1 min-w-0 text-sm rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors h-11"
+                class="flex-1 min-w-0 text-sm rounded-lg border-gray-700 bg-gray-800 text-gray-100 shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors h-11"
             >
             <button 
                 wire:click="findAsset"
-                class="inline-flex items-center px-6 h-11 text-sm font-bold text-white !bg-amber-500 rounded-lg hover:!bg-amber-600 transition-all shadow-sm flex-shrink-0"
+                class="inline-flex items-center px-6 h-11 text-sm font-bold text-white rounded-lg shadow-sm flex-shrink-0 transition-opacity hover:opacity-90"
+                style="background-color: #f59e0b !important;"
             >
                 {{ __('Search') }}
             </button>
