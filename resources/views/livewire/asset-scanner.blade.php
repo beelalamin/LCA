@@ -1,23 +1,53 @@
-<div class="space-y-4">
+<div>
     <style>
-        #reader__scan_region {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: center !important;
+        #reader-container {
+            position: relative;
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        #reader {
-            border: none !important;
-        }
-        #reader video {
-            border-radius: 12px !important;
-            margin: 0 auto !important;
+        #reader-video {
             width: 100% !important;
-            object-fit: cover !important;
-            max-height: 400px;
+            height: auto !important;
+            object-fit: cover;
         }
-        /* Beautify all library buttons */
-        #reader button {
-            background-color: rgb(245, 158, 11) !important; /* Amber 500 */
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .scanner-laser {
+            width: 80%;
+            height: 2px;
+            background: #f59e0b;
+            box-shadow: 0 0 8px #f59e0b;
+            position: absolute;
+            animation: scan 2s infinite ease-in-out;
+        }
+        @keyframes scan {
+            0%, 100% { transform: translateY(-100px); opacity: 0; }
+            50% { transform: translateY(100px); opacity: 1; }
+        }
+        .scanner-controls {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .scanner-btn {
+            background-color: rgb(245, 158, 11) !important;
             color: white !important;
             padding: 0.6rem 1.2rem !important;
             border-radius: 0.75rem !important;
@@ -26,56 +56,43 @@
             border: none !important;
             cursor: pointer !important;
             transition: all 0.2s !important;
-            margin: 8px auto !important;
-            display: block !important;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
-            text-transform: uppercase !important;
-            letter-spacing: 0.025em !important;
+            text-align: center;
+            width: 100%;
         }
-        #reader button:hover {
-            background-color: rgb(217, 119, 6) !important; /* Amber 600 */
-            transform: translateY(-1px);
+        .scanner-btn:hover { background-color: rgb(217, 119, 6) !important; }
+        .scanner-btn-secondary {
+            background-color: #374151 !important;
+            color: white !important;
         }
-        /* Beautify the 'Select File' link */
-        #reader a {
-            color: rgb(156, 163, 175) !important; 
-            text-decoration: none !important;
-            font-size: 0.75rem !important;
-            font-weight: 600 !important;
-            margin-top: 12px !important;
-            display: block !important;
-            text-align: center !important;
-            opacity: 0.8 !important;
-        }
-        #reader a:hover {
-            opacity: 1 !important;
-            text-decoration: underline !important;
-        }
-        /* Hide unnecessary text/status messages */
-        #reader__status_span, #reader__dashboard_section_csr span {
-            display: none !important;
-        }
-        /* Improve the camera selector */
-        #reader select {
-            background-color: #111827 !important; /* gray-900 */
+        #camera-select {
+            background-color: #111827 !important;
             color: white !important;
             border: 1px solid #374151 !important;
             border-radius: 0.5rem !important;
-            padding: 6px 10px !important;
-            font-size: 0.8rem !important;
-            margin: 10px auto !important;
-            display: block !important;
-            width: 80% !important;
+            padding: 8px 12px !important;
+            font-size: 0.85rem !important;
+            width: 100%;
         }
     </style>
-    <div wire:ignore 
-         id="reader" 
-         class="w-full overflow-hidden border-2 border-amber-500/10 rounded-xl shadow-inner bg-gray-950 flex flex-col justify-center" 
-         style="min-height: 350px;">
-         <div id="scanner-placeholder" class="flex flex-col items-center justify-center p-8 space-y-4">
-             <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
-             <p class="text-xs text-amber-500/50 font-bold uppercase tracking-widest">{{ __('Initializing Camera...') }}</p>
-         </div>
+
+    <div wire:ignore>
+        <div id="reader-container">
+            <div id="reader-video-container" style="width: 100%;"></div>
+            <div id="scanner-ui-placeholder" class="flex flex-col items-center">
+                <div class="animate-pulse flex flex-col items-center space-y-2">
+                    <x-heroicon-o-camera class="w-12 h-12 text-amber-500/20" />
+                    <button onclick="startScanning()" class="scanner-btn">{{ __('Start Camera') }}</button>
+                </div>
+            </div>
+            <div id="scanning-overlay" class="scanner-overlay" style="display: none;">
+                <div class="scanner-laser"></div>
+            </div>
+        </div>
+
+        <div class="scanner-controls">
+            <select id="camera-select" style="display: none;"></select>
+            <button id="stop-btn" onclick="stopScanning()" class="scanner-btn scanner-btn-secondary" style="display: none;">{{ __('Stop Camera') }}</button>
+        </div>
     </div>
 
     <div class="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mt-4">
@@ -87,13 +104,12 @@
                     wire:model="asset_tag"
                     placeholder="{{ __('Tag or Serial #') }}"
                     class="block w-full text-sm rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors"
-                    @keydown.enter="$wire.findAsset()"
                 >
                 @error('asset_tag') <span class="text-xs text-red-500 mt-1 block px-1">{{ $message }}</span> @enderror
             </div>
             <button 
                 wire:click="findAsset"
-                class="inline-flex items-center px-5 py-2 text-sm font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 active:bg-amber-800 transition-all shadow-sm h-fit"
+                class="scanner-btn !w-fit h-fit"
             >
                 {{ __('Search') }}
             </button>
@@ -101,89 +117,91 @@
     </div>
 
     <script>
-        window.html5QrcodeScanner = window.html5QrcodeScanner || null;
+        window.scannerObj = window.scannerObj || null;
 
-        function onScanSuccess(decodedText, decodedResult) {
-            console.log(`Scan Result: ${decodedText}`);
-            @this.set('asset_tag', decodedText);
-            @this.findAsset();
+        async function startScanning() {
+            try {
+                if (!window.scannerObj) {
+                    window.scannerObj = new Html5Qrcode("reader-video-container");
+                }
+
+                const cameras = await Html5Qrcode.getCameras();
+                if (cameras && cameras.length > 0) {
+                    const select = document.getElementById('camera-select');
+                    select.innerHTML = '';
+                    cameras.forEach(cam => {
+                        const opt = document.createElement('option');
+                        opt.value = cam.id;
+                        opt.text = cam.label;
+                        select.appendChild(opt);
+                    });
+                    
+                    if (cameras.length > 1) select.style.display = 'block';
+
+                    const config = {
+                        fps: 20,
+                        qrbox: { width: 250, height: 250 },
+                        aspectRatio: 1.0,
+                    };
+
+                    await window.scannerObj.start(
+                        { facingMode: "environment" }, 
+                        config, 
+                        (text) => {
+                            console.log("Scanned:", text);
+                            @this.set('asset_tag', text);
+                            @this.findAsset();
+                        }
+                    );
+
+                    document.getElementById('scanner-ui-placeholder').style.display = 'none';
+                    document.getElementById('scanning-overlay').style.display = 'flex';
+                    document.getElementById('stop-btn').style.display = 'block';
+                }
+            } catch (err) {
+                console.error("Scanner Error:", err);
+            }
         }
 
-        async function initScanner() {
-             const element = document.getElementById('reader');
-             if (!element) return;
-
-             // Ensure the div is reset if cleared by library
-             if (element.innerHTML.trim() === '') {
-                 element.innerHTML = '<div id="scanner-placeholder" class="flex flex-col items-center justify-center p-8 space-y-4">' +
-                     '<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>' +
-                     '<p class="text-xs text-amber-500/50 font-bold uppercase tracking-widest">{{ __('Initializing Camera...') }}</p>' +
-                 '</div>';
-             }
-
-             const placeholder = document.getElementById('scanner-placeholder');
-
-             // Clean up previous instance if exists fully
-             if (window.html5QrcodeScanner) {
-                 try {
-                     await window.html5QrcodeScanner.clear();
-                 } catch (e) {
-                     console.warn("Expected cleanup", e);
-                 }
-                 window.html5QrcodeScanner = null;
-             }
-
-             if (placeholder) placeholder.style.display = 'flex';
-
-             window.html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", 
-                { 
-                    fps: 20, 
-                    qrbox: {width: 250, height: 250},
-                    rememberLastUsedCamera: true,
-                    aspectRatio: 1.0,
-                    showTorchButtonIfSupported: true,
-                    videoConstraints: {
-                        facingMode: "environment"
-                    },
-                    formatsToSupport: [0, 2, 3, 4, 5, 7, 8, 9, 14, 15]
-                },
-                /* verbose= */ false
-            );
-            
-            window.html5QrcodeScanner.render(onScanSuccess);
-
-            setTimeout(() => {
-                if (placeholder) placeholder.style.display = 'none';
-            }, 1000);
-        }
-
-        async function cleanupScanner() {
-            if (window.html5QrcodeScanner) {
+        async function stopScanning() {
+            if (window.scannerObj && window.scannerObj.isScanning) {
                 try {
-                    await window.html5QrcodeScanner.clear();
-                    window.html5QrcodeScanner = null;
-                    console.log('Scanner destroyed');
+                    await window.scannerObj.stop();
+                    document.getElementById('scanner-ui-placeholder').style.display = 'flex';
+                    document.getElementById('scanning-overlay').style.display = 'none';
+                    document.getElementById('stop-btn').style.display = 'none';
                 } catch (e) {
-                    console.warn("Cleanup warning", e);
+                    console.warn("Stop error:", e);
                 }
             }
         }
 
-        // Handle modal lifecycle
-        const modalEvents = ['modal-closed', 'close-modal', 'filament-modal-close', 'filament-modal-closed'];
-        modalEvents.forEach(evt => window.addEventListener(evt, (e) => {
-            if (!e.detail || e.detail.id === 'scanner-modal') cleanupScanner();
-        }));
-
-        const openEvents = ['modal-opened', 'open-modal', 'filament-modal-open'];
-        openEvents.forEach(evt => window.addEventListener(evt, (e) => {
+        // Modal triggers
+        function handleOpen(e) {
             if (!e.detail || e.detail.id === 'scanner-modal') {
-                setTimeout(initScanner, 400);
+                setTimeout(startScanning, 500);
             }
-        }));
+        }
 
-        // Initial check for direct load
-        setTimeout(initScanner, 600);
+        function handleClose(e) {
+            if (!e.detail || e.detail.id === 'scanner-modal') {
+                stopScanning();
+            }
+        }
+
+        window.addEventListener('modal-opened', handleOpen);
+        window.addEventListener('open-modal', handleOpen);
+        window.addEventListener('filament-modal-open', handleOpen);
+
+        window.addEventListener('modal-closed', handleClose);
+        window.addEventListener('close-modal', handleClose);
+        window.addEventListener('filament-modal-close', handleClose);
+
+        // Auto-start if it's already visible (direct load/refresh)
+        setTimeout(startScanning, 1000);
+
+        // Cleanup on page hide or navigation
+        window.addEventListener('pagehide', () => stopScanning());
+        window.addEventListener('beforeunload', () => stopScanning());
     </script>
 </div>
