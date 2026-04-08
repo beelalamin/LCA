@@ -82,7 +82,7 @@
             <!-- Centered Placeholder -->
             <div id="scanner-ui-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-950/20 backdrop-blur-sm z-10 transition-opacity">
                 <div class="flex flex-col items-center justify-center space-y-4">
-                    <x-heroicon-o-viewfinder-circle class="w-20 h-20 text-amber-500/30 animate-pulse" />
+                    <x-heroicon-o-viewfinder-circle class="w-20 h-20 text-amber-500 animate-pulse" />
                     <button onclick="startScanning()" class="scanner-btn !w-fit px-8 py-2.5 !text-xs tracking-widest uppercase">
                         {{ __('Start Scanning') }}
                     </button>
