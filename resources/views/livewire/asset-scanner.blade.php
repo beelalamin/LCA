@@ -76,14 +76,19 @@
     </style>
 
     <div wire:ignore>
-        <div id="reader-container">
-            <div id="reader-video-container" style="width: 100%;"></div>
-            <div id="scanner-ui-placeholder" class="flex flex-col items-center">
-                <div class="animate-pulse flex flex-col items-center space-y-2">
-                    <x-heroicon-o-camera class="w-12 h-12 text-amber-500/20" />
-                    <button onclick="startScanning()" class="scanner-btn">{{ __('Start Camera') }}</button>
+        <div id="reader-container" class="relative">
+            <div id="reader-video-container" class="w-full h-full"></div>
+            
+            <!-- Centered Placeholder -->
+            <div id="scanner-ui-placeholder" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-950/20 backdrop-blur-sm z-10 transition-opacity">
+                <div class="flex flex-col items-center justify-center space-y-4">
+                    <x-heroicon-o-camera class="w-16 h-16 text-amber-500/20" />
+                    <button onclick="startScanning()" class="scanner-btn !w-fit px-6 py-2 !text-xs">
+                        {{ __('Start Camera') }}
+                    </button>
                 </div>
             </div>
+
             <div id="scanning-overlay" class="scanner-overlay" style="display: none;">
                 <div class="scanner-laser"></div>
             </div>
@@ -91,29 +96,32 @@
 
         <div class="scanner-controls">
             <select id="camera-select" style="display: none;"></select>
-            <button id="stop-btn" onclick="stopScanning()" class="scanner-btn scanner-btn-secondary" style="display: none;">{{ __('Stop Camera') }}</button>
+            <button id="stop-btn" onclick="stopScanning()" class="scanner-btn scanner-btn-secondary !text-xs !py-1.5" style="display: none;">
+                {{ __('Stop Camera') }}
+            </button>
         </div>
     </div>
 
+    <!-- Improved Search Section -->
     <div class="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mt-4">
-        <label class="block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">{{ __('Manual Entry') }}</label>
-        <div class="flex gap-x-2">
-            <div class="flex-grow">
+        <label class="block text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">{{ __('Manual Entry') }}</label>
+        <div class="flex items-center gap-3">
+            <div class="flex-1">
                 <input 
                     type="text" 
                     wire:model="asset_tag"
                     placeholder="{{ __('Tag or Serial #') }}"
-                    class="block w-full text-sm rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors"
+                    class="block w-full text-sm rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors h-11"
                 >
-                @error('asset_tag') <span class="text-xs text-red-500 mt-1 block px-1">{{ $message }}</span> @enderror
             </div>
             <button 
                 wire:click="findAsset"
-                class="scanner-btn !w-fit h-fit"
+                class="scanner-btn !w-fit h-11 !m-0 flex items-center justify-center px-8"
             >
                 {{ __('Search') }}
             </button>
         </div>
+        @error('asset_tag') <span class="text-xs text-red-500 mt-2 block px-1">{{ $message }}</span> @enderror
     </div>
 
     <script>
