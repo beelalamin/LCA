@@ -110,7 +110,8 @@
                 type="text" 
                 wire:model="asset_tag"
                 placeholder="{{ __('Tag or Serial #') }}"
-                class="flex-1 min-w-0 text-sm rounded-lg border-gray-700 bg-gray-800 text-gray-100 shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors h-11"
+                class="flex-1 min-w-0 text-sm rounded-lg shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors h-11 text-gray-100 placeholder-gray-500"
+                style="background-color: #1f2937 !important; border: 1px solid #374151 !important;"
             >
             <button 
                 wire:click="findAsset"
