@@ -100,18 +100,37 @@
                 {{ __('Stop Camera') }}
             </button>
         </div>
+        <style>
+            .scanner-input {
+                background-color: #f9fafb; /* gray-50 */
+                border: 1px solid #d1d5db; /* gray-300 */
+                color: #111827; /* gray-900 */
+            }
+            .dark .scanner-input {
+                background-color: #1f2937 !important; /* gray-800 */
+                border: 1px solid #374151 !important; /* gray-700 */
+                color: #f9fafb !important; /* gray-50 */
+            }
+            .scanner-card {
+                background-color: #ffffff;
+                border: 1px solid #f3f4f6;
+            }
+            .dark .scanner-card {
+                background-color: #111827 !important;
+                border: 1px solid #1f2937 !important;
+            }
+        </style>
     </div>
 
     <!-- Improved Search Section -->
-    <div class="p-4 bg-gray-900 rounded-xl border border-gray-800 shadow-sm mt-4">
+    <div class="p-4 rounded-xl shadow-sm mt-4 scanner-card">
         <label class="block text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">{{ __('Manual Entry') }}</label>
         <div class="flex items-center gap-3">
             <input 
                 type="text" 
                 wire:model="asset_tag"
                 placeholder="{{ __('Tag or Serial #') }}"
-                class="flex-1 min-w-0 text-sm rounded-lg shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors h-11 text-gray-100 placeholder-gray-500"
-                style="background-color: #1f2937 !important; border: 1px solid #374151 !important;"
+                class="flex-1 min-w-0 text-sm rounded-lg shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors h-11 scanner-input"
             >
             <button 
                 wire:click="findAsset"
