@@ -13,6 +13,10 @@ class AssetScanner extends Component
 
     public function findAsset(): void
     {
+        $this->validate([
+            'asset_tag' => 'required|string|min:2',
+        ]);
+
         $asset = Asset::where('asset_tag', $this->asset_tag)
             ->orWhere('serial_number', $this->asset_tag)
             ->first();

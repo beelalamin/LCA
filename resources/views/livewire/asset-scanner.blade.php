@@ -36,12 +36,9 @@
             background-color: rgb(217, 119, 6) !important; /* Amber 600 */
             transform: translateY(-1px);
         }
-        #reader button:active {
-            transform: translateY(0);
-        }
-        /* Beautify the 'Select File' link to look like a subtle button */
+        /* Beautify the 'Select File' link */
         #reader a {
-            color: rgb(156, 163, 175) !important; /* Gray 400 */
+            color: rgb(156, 163, 175) !important; 
             text-decoration: none !important;
             font-size: 0.75rem !important;
             font-weight: 600 !important;
@@ -49,33 +46,26 @@
             display: block !important;
             text-align: center !important;
             opacity: 0.8 !important;
-            transition: opacity 0.2s !important;
         }
         #reader a:hover {
             opacity: 1 !important;
             text-decoration: underline !important;
         }
-        /* Hide unnecessary text/status messages from the library */
-        #reader__status_span {
+        /* Hide unnecessary text/status messages */
+        #reader__status_span, #reader__dashboard_section_csr span {
             display: none !important;
         }
-        #reader__dashboard_section_csr span {
-            display: none !important;
-        }
-        /* Hide the 'Launching Camera' button if video is already showing */
-        #reader video ~ #reader__dashboard_section_csr button:first-child {
-            display: none !important;
-        }
-        /* Improve the camera selector appearance */
+        /* Improve the camera selector */
         #reader select {
-            background-color: #1f2937 !important; /* gray-800 */
+            background-color: #111827 !important; /* gray-900 */
             color: white !important;
-            border: 1px solid #374151 !important; /* gray-700 */
+            border: 1px solid #374151 !important;
             border-radius: 0.5rem !important;
-            padding: 4px 8px !important;
-            font-size: 0.75rem !important;
+            padding: 6px 10px !important;
+            font-size: 0.8rem !important;
             margin: 10px auto !important;
             display: block !important;
+            width: 80% !important;
         }
     </style>
     <div wire:ignore 
@@ -88,19 +78,22 @@
          </div>
     </div>
 
-    <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
-        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">{{ __('Manual Entry') }}</label>
+    <div class="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mt-4">
+        <label class="block text-xs font-bold text-gray-400 uppercase mb-2 tracking-wider">{{ __('Manual Entry') }}</label>
         <div class="flex gap-x-2">
-            <input 
-                type="text" 
-                wire:model="asset_tag"
-                placeholder="{{ __('Tag or Serial #') }}"
-                class="block w-full text-sm rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 shadow-sm focus:border-amber-500 focus:ring-amber-500"
-                @keydown.enter="$wire.findAsset()"
-            >
+            <div class="flex-grow">
+                <input 
+                    type="text" 
+                    wire:model="asset_tag"
+                    placeholder="{{ __('Tag or Serial #') }}"
+                    class="block w-full text-sm rounded-lg border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-amber-500 focus:ring-amber-500 transition-colors"
+                    @keydown.enter="$wire.findAsset()"
+                >
+                @error('asset_tag') <span class="text-xs text-red-500 mt-1 block px-1">{{ $message }}</span> @enderror
+            </div>
             <button 
                 wire:click="findAsset"
-                class="inline-flex items-center px-4 py-2 text-sm font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors shadow-sm"
+                class="inline-flex items-center px-5 py-2 text-sm font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 active:bg-amber-800 transition-all shadow-sm h-fit"
             >
                 {{ __('Search') }}
             </button>
@@ -120,14 +113,22 @@
              const element = document.getElementById('reader');
              if (!element) return;
 
+             // Ensure the div is reset if cleared by library
+             if (element.innerHTML.trim() === '') {
+                 element.innerHTML = '<div id="scanner-placeholder" class="flex flex-col items-center justify-center p-8 space-y-4">' +
+                     '<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>' +
+                     '<p class="text-xs text-amber-500/50 font-bold uppercase tracking-widest">{{ __('Initializing Camera...') }}</p>' +
+                 '</div>';
+             }
+
              const placeholder = document.getElementById('scanner-placeholder');
 
-             // Clean up previous instance if exists
+             // Clean up previous instance if exists fully
              if (window.html5QrcodeScanner) {
                  try {
                      await window.html5QrcodeScanner.clear();
                  } catch (e) {
-                     console.warn("Expected error clearing scanner", e);
+                     console.warn("Expected cleanup", e);
                  }
                  window.html5QrcodeScanner = null;
              }
@@ -145,14 +146,13 @@
                     videoConstraints: {
                         facingMode: "environment"
                     },
-                    formatsToSupport: [0, 2, 3, 4, 5, 7, 8, 9, 14, 15] // Common QR and Barcode formats
+                    formatsToSupport: [0, 2, 3, 4, 5, 7, 8, 9, 14, 15]
                 },
                 /* verbose= */ false
             );
             
             window.html5QrcodeScanner.render(onScanSuccess);
 
-            // Hide placeholder after a short delay to allow camera load
             setTimeout(() => {
                 if (placeholder) placeholder.style.display = 'none';
             }, 1000);
@@ -163,35 +163,27 @@
                 try {
                     await window.html5QrcodeScanner.clear();
                     window.html5QrcodeScanner = null;
-                    console.log('Scanner destroyed successfully');
+                    console.log('Scanner destroyed');
                 } catch (e) {
-                    console.warn("Cleanup error (likely already stopped)", e);
+                    console.warn("Cleanup warning", e);
                 }
             }
         }
 
-        // Listen for ANY event that means the modal is gone
+        // Handle modal lifecycle
         const modalEvents = ['modal-closed', 'close-modal', 'filament-modal-close', 'filament-modal-closed'];
-        modalEvents.forEach(eventName => {
-            window.addEventListener(eventName, (event) => {
-                if (!event.detail || event.detail.id === 'scanner-modal') {
-                    cleanupScanner();
-                }
-            });
-        });
+        modalEvents.forEach(evt => window.addEventListener(evt, (e) => {
+            if (!e.detail || e.detail.id === 'scanner-modal') cleanupScanner();
+        }));
 
-        // Listen for ANY event that means the modal is open
         const openEvents = ['modal-opened', 'open-modal', 'filament-modal-open'];
-        openEvents.forEach(eventName => {
-            window.addEventListener(eventName, (event) => {
-                if (!event.detail || event.detail.id === 'scanner-modal') {
-                    console.log(`Scanner event triggered: ${eventName}`);
-                    setTimeout(initScanner, 400);
-                }
-            });
-        });
+        openEvents.forEach(evt => window.addEventListener(evt, (e) => {
+            if (!e.detail || e.detail.id === 'scanner-modal') {
+                setTimeout(initScanner, 400);
+            }
+        }));
 
-        // Fallback for direct page access
+        // Initial check for direct load
         setTimeout(initScanner, 600);
     </script>
 </div>
