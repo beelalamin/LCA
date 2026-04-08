@@ -105,8 +105,8 @@
     <!-- Improved Search Section -->
     <div class="p-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mt-4">
         <label class="block text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">{{ __('Manual Entry') }}</label>
-        <div class="flex items-center gap-3">
-            <div class="flex-1">
+        <div class="flex items-center gap-2">
+            <div class="flex-grow">
                 <input 
                     type="text" 
                     wire:model="asset_tag"
@@ -116,7 +116,7 @@
             </div>
             <button 
                 wire:click="findAsset"
-                class="scanner-btn !w-fit h-11 !m-0 flex items-center justify-center px-8"
+                class="scanner-btn !w-auto h-11 !m-0 flex items-center justify-center px-6 !text-xs"
             >
                 {{ __('Search') }}
             </button>
