@@ -1,4 +1,4 @@
-name: Deploy LC Assets
+name: Deploy Adda Inventory Hub Assets
 
 on:
   push:
@@ -27,7 +27,6 @@ jobs:
         with:
           switches: -avzr --delete --omit-dir-times --no-perms --exclude='.env' --exclude='storage/' --exclude='bootstrap/cache/' --exclude='vendor/' --exclude='.git/' --exclude='.github/' --exclude='node_modules/'
           path: ./
-          # Updated to match your new domain folder
           remote_path: /home/addainventoryhub/htdocs/addainventoryhub.com
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USERNAME }}
@@ -42,26 +41,32 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # Set the directory variable
+            # 1. Target the correct application path
             APP_DIR="/home/addainventoryhub/htdocs/addainventoryhub.com"
             cd $APP_DIR
 
             echo "📦 Installing server-side dependencies..."
-            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+            php8.3 /usr/local/bin/composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
             echo "🧹 Clearing and caching configurations..."
-            php artisan optimize:clear
-            php artisan config:cache
-            php artisan event:cache
-            php artisan route:cache
-            php artisan view:cache
+            php8.3 artisan optimize:clear
+            php8.3 artisan config:cache
+            php8.3 artisan event:cache
+            php8.3 artisan route:cache
+            php8.3 artisan view:cache
+
+            echo "⚡ Re-publishing Livewire assets to prevent 404 breaks..."
+            php8.3 artisan vendor:publish --force --tag=livewire:assets
 
             echo "🔧 Running migrations..."
-            php artisan migrate --force
+            php8.3 artisan migrate --force
 
-            echo "🔄 Restarting queue worker..."
+            echo "🔒 Ensuring core permissions remain intact..."
+            mkdir -p bootstrap/cache storage/framework/{cache,sessions,testing,views} storage/app/public storage/logs
+            chmod -R 775 storage bootstrap/cache
+
+            echo "🔄 Restarting queue worker & PHP-FPM..."
             sudo supervisorctl restart laravel-worker:* || true
-            # echo "🔄 Reloading PHP-FPM..."
-            # sudo systemctl reload php8.3-fpm || true
+            sudo systemctl restart php8.3-fpm || true
 
             echo "✅ Deployment completed successfully!"
