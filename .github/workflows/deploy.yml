@@ -43,7 +43,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             # Set the directory variable
-            APP_DIR="/home/luxurycode/htdocs/lca.luxurycodeqa.com"
+            APP_DIR="/home/addainventoryhub/htdocs/addainventoryhub.com"
             cd $APP_DIR
 
             echo "📦 Installing server-side dependencies..."
