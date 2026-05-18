@@ -180,5 +180,16 @@
     "Delete Account": "حذف الحساب",
     "Are you sure you want to delete your account? This action cannot be undone.": "هل أنت متأكد من رغبتك في حذف حسابك؟ لا يمكن التراجع عن هذا الإجراء.",
     "Account deleted successfully": "تم حذف الحساب بنجاح",
-    "Yes, delete my account": "نعم، حذف حسابي"
+    "Yes, delete my account": "نعم، حذف حسابي",
+    "Download Template": "تحميل القالب",
+    "Import Assets": "استيراد الأصول",
+    "Excel File": "ملف إكسل",
+    "Upload an .xlsx or .csv file. Download the template first for the correct format.": "قم بتحميل ملف .xlsx أو .csv. قم بتنزيل القالب أولاً للحصول على التنسيق الصحيح.",
+    "Import Assets from Excel": "استيراد الأصول من إكسل",
+    "Upload a completed Excel file using the provided template format. The first row must be the header row. Asset tags will be auto-generated.": "قم بتحميل ملف إكسل مكتمل باستخدام تنسيق القالب المقدم. يجب أن يكون الصف الأول هو صف العناوين. سيتم إنشاء أرقام الأصول تلقائياً.",
+    "Import": "استيراد",
+    ":count assets imported successfully": "تم استيراد :count أصل بنجاح",
+    ":skipped rows skipped. Errors:": "تم تخطي :skipped صف. الأخطاء:",
+    "Row :row: :errors": "صف :row: :errors",
+    "Import Failed": "فشل الاستيراد"
 }

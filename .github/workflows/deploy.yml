@@ -28,7 +28,7 @@ jobs:
           switches: -avzr --delete --omit-dir-times --no-perms --exclude='.env' --exclude='storage/' --exclude='bootstrap/cache/' --exclude='vendor/' --exclude='.git/' --exclude='.github/' --exclude='node_modules/'
           path: ./
           # Updated to match your new domain folder
-          remote_path: /home/luxurycode/htdocs/lca.luxurycodeqa.com
+          remote_path: /home/addainventoryhub/htdocs/addainventoryhub.com
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_key: ${{ secrets.SSH_KEY }}
