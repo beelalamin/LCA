@@ -27,7 +27,7 @@ jobs:
         with:
           switches: -avzr --delete --omit-dir-times --no-perms --exclude='.env' --exclude='storage/' --exclude='bootstrap/cache/' --exclude='vendor/' --exclude='.git/' --exclude='.github/' --exclude='node_modules/'
           path: ./
-          remote_path: /home/addainventoryhub/htdocs/addainventoryhub.com
+          remote_path: /home/addainventoryhub-lca/htdocs/lca.addainventoryhub.com
           remote_host: ${{ secrets.SSH_HOST }}
           remote_user: ${{ secrets.SSH_USERNAME }}
           remote_key: ${{ secrets.SSH_KEY }}
