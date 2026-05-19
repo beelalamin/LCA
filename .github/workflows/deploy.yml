@@ -29,7 +29,7 @@ jobs:
           path: ./
           remote_path: /home/addainventoryhub-lca/htdocs/lca.addainventoryhub.com
           remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USERNAME }}
+          remote_user: ${{ secrets.SSH_USERNAME }} # Uses root secret
           remote_key: ${{ secrets.SSH_KEY }}
           remote_port: ${{ secrets.SSH_PORT }}
 
@@ -37,12 +37,12 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
+          username: ${{ secrets.SSH_USERNAME }} # Uses root secret
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # 1. Target the correct application path
-            APP_DIR="/home/addainventoryhub/htdocs/addainventoryhub.com"
+            # 1. Target the correct active application path
+            APP_DIR="/home/addainventoryhub-lca/htdocs/lca.addainventoryhub.com"
             cd $APP_DIR
 
             echo "📦 Installing server-side dependencies..."
@@ -55,14 +55,18 @@ jobs:
             php8.3 artisan route:cache
             php8.3 artisan view:cache
 
-            echo "⚡ Re-publishing Livewire assets to prevent 404 breaks..."
+            echo "⚡ Re-publishing Filament & Livewire assets to prevent breaks..."
             php8.3 artisan vendor:publish --force --tag=livewire:assets
+            php8.3 artisan filament:assets
 
             echo "🔧 Running migrations..."
             php8.3 artisan migrate --force
 
-            echo "🔒 Ensuring core permissions remain intact..."
+            echo "🔒 Creating runtime directories and ensuring structural safety..."
             mkdir -p bootstrap/cache storage/framework/{cache,sessions,testing,views} storage/app/public storage/logs
+
+            echo "👑 Resetting permissions from root back to the CloudPanel site owner..."
+            chown -R addainventoryhub-lca:addainventoryhub-lca $APP_DIR
             chmod -R 775 storage bootstrap/cache
 
             echo "🔄 Restarting queue worker & PHP-FPM..."
