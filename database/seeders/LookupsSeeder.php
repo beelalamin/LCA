@@ -45,17 +45,17 @@ class LookupsSeeder extends Seeder
             );
         }
 
-        $staffStatuses = [
+        $userStatuses = [
             ['code' => 'active',     'name' => ['en' => 'Active',     'ar' => 'نشط']],
             ['code' => 'on_leave',   'name' => ['en' => 'On Leave',   'ar' => 'في إجازة']],
             ['code' => 'inactive',   'name' => ['en' => 'Inactive',   'ar' => 'غير نشط']],
             ['code' => 'terminated', 'name' => ['en' => 'Terminated', 'ar' => 'منتهي الخدمة']],
         ];
 
-        foreach ($staffStatuses as $i => $row) {
+        foreach ($userStatuses as $i => $row) {
             Status::firstOrCreate(
                 ['code' => $row['code']],
-                array_merge($row, ['scope' => 'staff', 'sort_order' => $i * 10])
+                array_merge($row, ['scope' => 'user', 'sort_order' => $i * 10])
             );
         }
 

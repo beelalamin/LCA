@@ -14,14 +14,14 @@ class AssignmentObserver
             $assignment->assignment_number = static::generateAssignmentNumber();
         }
 
-        if ($assignment->employee_id) {
-            $employee = $assignment->employee()->first();
-            if ($employee) {
-                if (empty($assignment->department_id) && $employee->department_id) {
-                    $assignment->department_id = $employee->department_id;
+        if ($assignment->user_id) {
+            $user = $assignment->user()->first();
+            if ($user) {
+                if (empty($assignment->department_id) && $user->department_id) {
+                    $assignment->department_id = $user->department_id;
                 }
-                if (empty($assignment->office_location_id) && $employee->office_location_id) {
-                    $assignment->office_location_id = $employee->office_location_id;
+                if (empty($assignment->office_location_id) && $user->office_location_id) {
+                    $assignment->office_location_id = $user->office_location_id;
                 }
             }
         }
@@ -64,7 +64,7 @@ class AssignmentObserver
         }
 
         $update = [
-            'assigned_to_employee_id' => $assignment->is_active ? $assignment->employee_id : null,
+            'assigned_to_user_id' => $assignment->is_active ? $assignment->user_id : null,
             'assignment_status_id' => $assignment->assignment_status_id,
             'assigned_date' => $assignment->checked_out_at?->toDateString(),
             'return_date' => $assignment->checked_in_at?->toDateString(),

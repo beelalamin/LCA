@@ -65,11 +65,11 @@ class MyAssets extends Page implements HasTable
 
     protected static function getTableQuery(): Builder
     {
-        $employeeId = auth()->user()?->employee_id;
+        $userId = auth()->id();
 
         return Asset::query()
             ->with(['category', 'status'])
-            ->when($employeeId, fn ($q) => $q->where('assigned_to_employee_id', $employeeId))
-            ->when(! $employeeId, fn ($q) => $q->whereRaw('1 = 0'));
+            ->when($userId, fn ($q) => $q->where('assigned_to_user_id', $userId))
+            ->when(! $userId, fn ($q) => $q->whereRaw('1 = 0'));
     }
 }

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('assignments', function (Blueprint $table) {
             $table->string('assignment_number')->nullable()->unique()->after('id');
-            $table->foreignUuid('department_id')->nullable()->after('employee_id')
+            $table->foreignUuid('department_id')->nullable()->after('user_id')
                 ->constrained('departments')->nullOnDelete();
             $table->foreignUuid('office_location_id')->nullable()->after('department_id')
                 ->constrained('office_locations')->nullOnDelete();

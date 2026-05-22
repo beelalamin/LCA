@@ -5,7 +5,7 @@ namespace App\Filament\Resources\AssetResource\Pages;
 use App\Filament\Resources\AssetResource;
 use App\Models\Asset;
 use App\Models\Assignment;
-use App\Models\Employee;
+use App\Models\User;
 use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\AssetReturnReason;
@@ -41,9 +41,9 @@ class ViewAsset extends ViewRecord
                     ->color('success')
                     ->visible(fn (Asset $record) => in_array($record->status?->code, ['available', 'purchased', 'reserved']))
                     ->form([
-                        Forms\Components\Select::make('employee_id')
-                            ->label(__('Employee'))
-                            ->options(Employee::where('is_active', true)->pluck('full_name_en', 'id'))
+                        Forms\Components\Select::make('user_id')
+                            ->label(__('User'))
+                            ->options(User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
                             ->required()
                             ->searchable(),
                         Forms\Components\Select::make('condition_out_id')
@@ -58,7 +58,7 @@ class ViewAsset extends ViewRecord
 
                         Assignment::create([
                             'asset_id' => $record->id,
-                            'employee_id' => $data['employee_id'],
+                            'user_id' => $data['user_id'],
                             'assigned_by' => auth()->id(),
                             'condition_out_id' => $data['condition_out_id'],
                             'checked_out_at' => now(),

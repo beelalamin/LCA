@@ -6,7 +6,7 @@ use App\Filament\Resources\AssetResource\Pages;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Category;
-use App\Models\Employee;
+use App\Models\User;
 use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\AssetModel;
@@ -211,9 +211,9 @@ class AssetResource extends Resource
                                 ->label(__('Assignment Status'))
                                 ->options(fn () => static::lookupOptions(AssetAssignmentStatus::class))
                                 ->searchable(),
-                            Forms\Components\Select::make('assigned_to_employee_id')
+                            Forms\Components\Select::make('assigned_to_user_id')
                                 ->label(__('Assigned To'))
-                                ->options(fn () => Employee::where('is_active', true)->pluck('full_name_en', 'id'))
+                                ->options(fn () => User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
                                 ->searchable(),
                             Forms\Components\DatePicker::make('assigned_date')->label(__('Assigned Date')),
                             Forms\Components\DatePicker::make('return_date')->label(__('Return Date')),
@@ -307,7 +307,7 @@ class AssetResource extends Resource
 
             ISection::make(__('Current Assignment'))->schema([
                 IGrid::make(3)->schema([
-                    TextEntry::make('assignedToEmployee.full_name_en')->label(__('Assigned To'))->placeholder('—'),
+                    TextEntry::make('assignedToUser.full_name')->label(__('Assigned To'))->placeholder('—'),
                     TextEntry::make('assignmentStatus.code')->label(__('Assignment Status'))->badge()
                         ->formatStateUsing(fn ($state, $record) => $record->assignmentStatus?->getTranslatedName())
                         ->color(fn ($record) => $record->assignmentStatus?->getColour() ?? 'gray'),
@@ -367,7 +367,7 @@ class AssetResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn ($state, $record) => $record->status?->getTranslatedName())
                     ->color(fn ($record) => $record->status?->getColour() ?? 'gray'),
-                Tables\Columns\TextColumn::make('assignedToEmployee.full_name_en')
+                Tables\Columns\TextColumn::make('assignedToUser.full_name')
                     ->label(__('Assigned To'))
                     ->placeholder(__('Not Assigned')),
                 Tables\Columns\TextColumn::make('officeLocation.code')
@@ -405,9 +405,9 @@ class AssetResource extends Resource
                         ->color('success')
                         ->visible(fn (Asset $record) => in_array($record->status?->code, ['available', 'purchased', 'reserved']))
                         ->form([
-                            Forms\Components\Select::make('employee_id')
-                                ->label(__('Employee'))
-                                ->options(Employee::where('is_active', true)->pluck('full_name_en', 'id'))
+                            Forms\Components\Select::make('user_id')
+                                ->label(__('User'))
+                                ->options(User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
                                 ->required()
                                 ->searchable(),
                             Forms\Components\Select::make('condition_out_id')
@@ -422,7 +422,7 @@ class AssetResource extends Resource
 
                             Assignment::create([
                                 'asset_id' => $record->id,
-                                'employee_id' => $data['employee_id'],
+                                'user_id' => $data['user_id'],
                                 'assigned_by' => auth()->id(),
                                 'condition_out_id' => $data['condition_out_id'],
                                 'checked_out_at' => now(),
@@ -513,7 +513,7 @@ class AssetResource extends Resource
             ->with([
                 'category', 'subCategory', 'manufacturer', 'assetModel',
                 'status', 'assignmentStatus', 'officeLocation', 'department',
-                'assignedToEmployee', 'warrantyStatus', 'warrantyProvider', 'supplier',
+                'assignedToUser', 'warrantyStatus', 'warrantyProvider', 'supplier',
                 'condition', 'criticality', 'ownershipType',
                 'maintenanceStatus', 'maintenanceType',
                 'disposalMethod', 'disposalReason',

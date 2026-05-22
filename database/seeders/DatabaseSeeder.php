@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Asset;
 use App\Models\Assignment;
 use App\Models\Category;
-use App\Models\Employee;
 use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\Department;
@@ -25,20 +24,15 @@ class DatabaseSeeder extends Seeder
         $this->call(LookupsSeeder::class);
         $this->call(RolesPermissionsSeeder::class);
 
-        $admin   = $this->makeUser('admin@lc.local',   'Administrator', 'admin');
-        $manager = $this->makeUser('manager@lc.local', 'Asset Manager', 'asset_manager');
-        $staff   = $this->makeUser('staff@lc.local',   'Staff User',    'user');
+        $admin   = $this->makeAccount('admin@luxurycode.qa',   'Administrator', 'admin');
+        $this->makeAccount('manager@luxurycode.qa', 'Asset Manager', 'asset_manager');
 
-        $employees = $this->seedEmployees();
+        $staff = $this->seedStaffUsers();
 
-        if (! $staff->employee_id && isset($employees['Angel'])) {
-            $staff->update(['employee_id' => $employees['Angel']->id]);
-        }
-
-        $this->seedAssetsFromCsv($employees, $admin->id);
+        $this->seedAssetsFromCsv($staff, $admin->id);
     }
 
-    protected function makeUser(string $email, string $name, string $role): User
+    protected function makeAccount(string $email, string $name, string $role): User
     {
         $user = User::firstOrCreate(
             ['email' => $email],
@@ -46,6 +40,7 @@ class DatabaseSeeder extends Seeder
                 'full_name' => $name,
                 'password' => Hash::make('password'),
                 'is_active' => true,
+                'preferred_locale' => 'en',
             ],
         );
 
@@ -56,15 +51,15 @@ class DatabaseSeeder extends Seeder
         return $user;
     }
 
-    /** @return array<string, Employee> keyed by first name */
-    protected function seedEmployees(): array
+    /** @return array<string, User> keyed by first name */
+    protected function seedStaffUsers(): array
     {
         $adminDept    = Department::where('code', 'admin')->value('id');
         $accountsDept = Department::where('code', 'accounts_hr')->value('id');
         $designDept   = Department::where('code', 'design')->value('id');
         $opsDept      = Department::where('code', 'operations')->value('id');
 
-        $activeStatusId = Status::forStaff()->where('code', 'active')->value('id');
+        $activeStatusId = Status::forUsers()->where('code', 'active')->value('id');
 
         $rows = [
             ['EMP-001', 'Angel',     'أنجل',     $adminDept],
@@ -81,23 +76,33 @@ class DatabaseSeeder extends Seeder
 
         $out = [];
         foreach ($rows as [$num, $en, $ar, $deptId]) {
-            $out[$en] = Employee::firstOrCreate(
+            $user = User::firstOrCreate(
                 ['employee_number' => $num],
                 [
-                    'full_name_en' => $en,
-                    'full_name_ar' => $ar,
-                    'department_id' => $deptId,
-                    'status_id' => $activeStatusId,
-                    'is_active' => true,
-                    'joining_date' => Carbon::now()->subYear(),
+                    'full_name'        => $en,
+                    'full_name_ar'     => $ar,
+                    'email'            => strtolower($en) . '@luxurycode.qa',
+                    'password'         => Hash::make('password'),
+                    'preferred_locale' => 'en',
+                    'department_id'    => $deptId,
+                    'status_id'        => $activeStatusId,
+                    'is_active'        => true,
+                    'joining_date'     => Carbon::now()->subYear(),
                 ],
             );
+
+            if (! $user->hasRole('user')) {
+                $user->assignRole('user');
+            }
+
+            $out[$en] = $user;
         }
 
         return $out;
     }
 
-    protected function seedAssetsFromCsv(array $employees, string $adminId): void
+    /** @param array<string, User> $staff */
+    protected function seedAssetsFromCsv(array $staff, string $adminId): void
     {
         $csvPath = base_path('static/Updated_Asset_Management.csv');
         if (! is_file($csvPath)) {
@@ -158,9 +163,9 @@ class DatabaseSeeder extends Seeder
             $nameAr = trim((string) $nameAr);
 
             $assigneeName = $this->extractAssignee((string) $notesEn);
-            $assignedEmployee = $assigneeName ? ($employees[$assigneeName] ?? null) : null;
+            $assignedUser = $assigneeName ? ($staff[$assigneeName] ?? null) : null;
 
-            $assignmentStatusId = $assignedEmployee ? $assignedAssignmentId : $availableAssignmentId;
+            $assignmentStatusId = $assignedUser ? $assignedAssignmentId : $availableAssignmentId;
 
             [$catId, $subCatId] = $this->resolveCategory($catStr, $subCatStr);
 
@@ -208,10 +213,10 @@ class DatabaseSeeder extends Seeder
                 'created_by'           => $adminId,
             ]);
 
-            if ($assignedEmployee) {
+            if ($assignedUser) {
                 Assignment::create([
                     'asset_id'             => $asset->id,
-                    'employee_id'          => $assignedEmployee->id,
+                    'user_id'              => $assignedUser->id,
                     'assigned_by'          => $adminId,
                     'checked_out_at'       => Carbon::now()->subMonths(2),
                     'condition_out_id'     => $condId,

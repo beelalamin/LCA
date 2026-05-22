@@ -32,7 +32,7 @@ class StatusResource extends Resource
                 ->label(__('Scope'))
                 ->options([
                     'asset' => __('Asset'),
-                    'staff' => __('Staff'),
+                    'user' => __('User'),
                 ])
                 ->default('asset')
                 ->required(),
@@ -61,7 +61,7 @@ class StatusResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('scope')->options([
                     'asset' => __('Asset'),
-                    'staff' => __('Staff'),
+                    'user' => __('User'),
                 ]),
                 Tables\Filters\TernaryFilter::make('is_active')->label(__('Active')),
             ])

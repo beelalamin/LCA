@@ -5,7 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AssignmentResource\Pages;
 use App\Models\Asset;
 use App\Models\Assignment;
-use App\Models\Employee;
+use App\Models\User;
 use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\AssetReturnReason;
@@ -66,9 +66,9 @@ class AssignmentResource extends Resource
                         ->mapWithKeys(fn ($a) => [$a->id => "{$a->asset_tag} — " . $a->getTranslation('name', app()->getLocale())]))
                     ->searchable()
                     ->required(),
-                Forms\Components\Select::make('employee_id')
-                    ->label(__('Employee'))
-                    ->options(fn () => Employee::where('is_active', true)->pluck('full_name_en', 'id'))
+                Forms\Components\Select::make('user_id')
+                    ->label(__('User'))
+                    ->options(fn () => User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
                     ->searchable()
                     ->required(),
                 Forms\Components\Select::make('department_id')
@@ -129,7 +129,7 @@ class AssignmentResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('assignment_number')->label(__('Assignment #'))->searchable(),
                 Tables\Columns\TextColumn::make('asset.asset_tag')->label(__('Asset'))->searchable(),
-                Tables\Columns\TextColumn::make('employee.full_name_en')->label(__('Employee'))->searchable(),
+                Tables\Columns\TextColumn::make('user.full_name')->label(__('User'))->searchable(),
                 Tables\Columns\TextColumn::make('assignmentStatus.code')
                     ->label(__('Status'))
                     ->badge()
@@ -148,7 +148,7 @@ class AssignmentResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active'),
-                Tables\Filters\SelectFilter::make('employee_id')->relationship('employee', 'full_name_en'),
+                Tables\Filters\SelectFilter::make('user_id')->relationship('user', 'full_name'),
                 Tables\Filters\SelectFilter::make('asset_id')->relationship('asset', 'asset_tag'),
                 Tables\Filters\SelectFilter::make('assignment_status_id')->relationship('assignmentStatus', 'code'),
             ])
@@ -178,7 +178,7 @@ class AssignmentResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         return parent::getEloquentQuery()->with([
-            'asset', 'employee', 'assignedBy',
+            'asset', 'user', 'assignedBy',
             'assignmentStatus', 'conditionOut', 'conditionIn',
         ]);
     }

@@ -106,9 +106,9 @@ class Asset extends Model
         return $this->belongsTo(CriticalityLevel::class, 'criticality_id');
     }
 
-    public function assignedToEmployee(): BelongsTo
+    public function assignedToUser(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'assigned_to_employee_id');
+        return $this->belongsTo(User::class, 'assigned_to_user_id');
     }
 
     public function assignmentStatus(): BelongsTo

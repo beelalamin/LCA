@@ -34,9 +34,9 @@ class Assignment extends Model
         return $this->belongsTo(Asset::class, 'asset_id');
     }
 
-    public function employee(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'employee_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function assignedBy(): BelongsTo

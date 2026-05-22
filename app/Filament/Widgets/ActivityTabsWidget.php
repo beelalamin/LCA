@@ -4,7 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\AssetResource;
 use App\Models\AuditLog;
-use App\Models\Employee;
+use App\Models\User;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -53,27 +53,28 @@ class ActivityTabsWidget extends BaseWidget
     {
         return $table
             ->query(
-                Employee::query()
-                    ->select('employees.*')
+                User::query()
+                    ->whereNotNull('employee_number')
+                    ->select('users.*')
                     ->selectSub(
                         DB::table('assignments')
                             ->selectRaw('count(*)')
-                            ->whereColumn('assignments.employee_id', 'employees.id')
+                            ->whereColumn('assignments.user_id', 'users.id')
                             ->where('is_active', true),
                         'active_assignments_count'
                     )
                     ->selectSub(
                         DB::table('assets')
                             ->selectRaw('coalesce(sum(purchase_cost), 0)')
-                            ->whereColumn('assets.assigned_to_employee_id', 'employees.id'),
+                            ->whereColumn('assets.assigned_to_user_id', 'users.id'),
                         'held_value'
                     )
                     ->orderByDesc('active_assignments_count')
                     ->limit(10)
             )
             ->columns([
-                Tables\Columns\TextColumn::make('full_name_en')
-                    ->label(__('Employee'))
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label(__('Staff'))
                     ->weight('semibold'),
                 Tables\Columns\TextColumn::make('department.code')
                     ->label(__('Department'))

@@ -3,7 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Assignment;
-use App\Models\Employee;
+use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -13,9 +13,13 @@ class PeopleStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $totalStaff = Employee::where('is_active', true)->count();
+        $staffQuery = User::query()
+            ->where('is_active', true)
+            ->whereNotNull('employee_number');
+
+        $totalStaff = (clone $staffQuery)->count();
         $activeAssignments = Assignment::where('is_active', true)->count();
-        $staffWithZero = Employee::where('is_active', true)
+        $staffWithZero = (clone $staffQuery)
             ->whereDoesntHave('activeAssignments')
             ->count();
 

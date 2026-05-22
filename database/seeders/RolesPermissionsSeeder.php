@@ -15,7 +15,7 @@ class RolesPermissionsSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $resources = [
-            'asset', 'assignment', 'category', 'employee', 'user',
+            'asset', 'assignment', 'category', 'user',
             'audit::log', 'maintenance::log',
             'lookup::status', 'lookup::manufacturer', 'lookup::model',
             'lookup::supplier', 'lookup::department', 'lookup::job::title',

@@ -40,9 +40,9 @@ return new class extends Migration
                 ->constrained('criticality_levels')->nullOnDelete();
             $table->date('last_maintenance_date')->nullable()->after('criticality_id');
             $table->date('next_maintenance_date')->nullable()->after('last_maintenance_date');
-            $table->foreignUuid('assigned_to_employee_id')->nullable()->after('next_maintenance_date')
-                ->constrained('employees')->nullOnDelete();
-            $table->foreignUuid('assignment_status_id')->nullable()->after('assigned_to_employee_id')
+            $table->foreignUuid('assigned_to_user_id')->nullable()->after('next_maintenance_date')
+                ->constrained('users')->nullOnDelete();
+            $table->foreignUuid('assignment_status_id')->nullable()->after('assigned_to_user_id')
                 ->constrained('asset_assignment_statuses')->nullOnDelete();
             $table->date('assigned_date')->nullable()->after('assignment_status_id');
             $table->date('return_date')->nullable()->after('assigned_date');
@@ -95,7 +95,7 @@ return new class extends Migration
                 'warranty_status_id', 'warranty_provider_id', 'image_path',
                 'description', 'is_active', 'qr_code',
                 'criticality_id', 'last_maintenance_date', 'next_maintenance_date',
-                'assigned_to_employee_id', 'assignment_status_id', 'assigned_date',
+                'assigned_to_user_id', 'assignment_status_id', 'assigned_date',
                 'return_date', 'return_reason_id', 'ownership_type_id',
                 'maintenance_status_id', 'maintenance_type_id', 'disposal_date',
                 'disposal_method_id', 'disposal_reason_id',

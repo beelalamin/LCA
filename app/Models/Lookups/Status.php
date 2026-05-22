@@ -11,9 +11,9 @@ class Status extends BaseLookup
         return $query->where('scope', 'asset');
     }
 
-    public function scopeForStaff($query)
+    public function scopeForUsers($query)
     {
-        return $query->where('scope', 'staff');
+        return $query->where('scope', 'user');
     }
 
     public function getColour(): string

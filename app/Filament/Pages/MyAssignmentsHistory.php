@@ -58,11 +58,11 @@ class MyAssignmentsHistory extends Page implements HasTable
 
     protected static function getTableQuery(): Builder
     {
-        $employeeId = auth()->user()?->employee_id;
+        $userId = auth()->id();
 
         return Assignment::query()
             ->with(['asset', 'assignmentStatus'])
-            ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
-            ->when(! $employeeId, fn ($q) => $q->whereRaw('1 = 0'));
+            ->when($userId, fn ($q) => $q->where('user_id', $userId))
+            ->when(! $userId, fn ($q) => $q->whereRaw('1 = 0'));
     }
 }
