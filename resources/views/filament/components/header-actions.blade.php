@@ -1,4 +1,9 @@
 <div class="flex items-center gap-x-4">
+    <!-- LC Logo (placed before the scanner) -->
+    <img src="{{ asset('images/lca-logo.png') }}"
+         alt="LC Mark"
+         class="h-8 w-auto object-contain hidden md:block">
+
     <!-- Scanner Modal Toggle -->
     <x-filament::modal id="scanner-modal" width="lg" alignment="center">
         <x-slot name="trigger">
@@ -19,7 +24,7 @@
         $targetLocale = app()->getLocale() === 'en' ? 'ar' : 'en';
     @endphp
     <!-- Language Switcher Toggle -->
-    <a href="{{ route('locale.switch', $targetLocale) }}" 
+    <a href="{{ route('locale.switch', $targetLocale) }}"
        class="flex items-center justify-center p-2 text-gray-500 hover:text-primary-600 transition-colors bg-gray-100 dark:bg-gray-800 rounded-xl group hover:shadow-sm"
        title="{{ __('Switch to') }} {{ strtoupper($targetLocale) }}">
         <x-heroicon-o-globe-alt class="w-6 h-6 group-hover:rotate-12 transition-transform" />

@@ -4,8 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\MaintenanceLogResource\Pages;
 use App\Models\MaintenanceLog;
-use App\Enums\MaintenanceStatus;
-use App\Enums\MaintenanceType;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -37,18 +35,13 @@ class MaintenanceLogResource extends Resource
                     ->relationship('asset', 'name')
                     ->required()
                     ->searchable(),
-                Forms\Components\Select::make('type')
-                    ->options(MaintenanceType::class)
-                    ->required(),
-                Forms\Components\Select::make('status')
-                    ->options(MaintenanceStatus::class)
-                    ->required()
-                    ->default('OPEN'),
+                Forms\Components\TextInput::make('type'),
+                Forms\Components\TextInput::make('status'),
                 Forms\Components\Textarea::make('description')
                     ->columnSpanFull(),
                 Forms\Components\DatePicker::make('scheduled_date'),
                 Forms\Components\DatePicker::make('completed_date'),
-                Forms\Components\TextInput::make('cost')->numeric()->prefix('$'),
+                Forms\Components\TextInput::make('cost')->numeric()->prefix('QAR'),
                 Forms\Components\TextInput::make('vendor'),
             ]);
     }
@@ -64,15 +57,11 @@ class MaintenanceLogResource extends Resource
                 Tables\Columns\TextColumn::make('scheduled_date')->date(),
                 Tables\Columns\TextColumn::make('completed_date')->date(),
             ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('status')->options(fn () => collect(MaintenanceStatus::cases())->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])->toArray()),
-                Tables\Filters\SelectFilter::make('type')->options(fn () => collect(MaintenanceType::cases())->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])->toArray()),
-            ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
-                ])->icon('heroicon-m-ellipsis-vertical')
+                ])->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

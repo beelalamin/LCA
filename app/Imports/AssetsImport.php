@@ -3,47 +3,35 @@
 namespace App\Imports;
 
 use App\Models\Asset;
-use App\Models\Category;
-use App\Enums\AssetStatus;
-use App\Services\AssetService;
+use App\Models\Lookups\AssetAssignmentStatus;
+use App\Models\Lookups\AssetModel;
+use App\Models\Lookups\Manufacturer;
+use App\Models\Lookups\OfficeLocation;
+use App\Models\Lookups\Status;
+use App\Models\Lookups\Supplier;
+use App\Services\Lookups\LookupResolver;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Events\BeforeSheet;
-use Illuminate\Support\Facades\Log;
 
-class AssetsImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmptyRows, SkipsOnFailure, WithChunkReading, WithEvents
+class AssetsImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmptyRows, SkipsOnFailure, WithChunkReading
 {
     use SkipsFailures;
 
-    protected array $categoryCache = [];
+    protected LookupResolver $resolver;
+
     protected int $importedCount = 0;
     protected int $skippedCount = 0;
     protected array $seenSerials = [];
 
     public function __construct()
     {
-        // Pre-load all categories for fast lookup
-        $categories = Category::all();
-        foreach ($categories as $category) {
-            // Index by both EN and AR names (lowercased) for flexible matching
-            $enName = strtolower(trim($category->getTranslation('name', 'en')));
-            $arName = strtolower(trim($category->getTranslation('name', 'ar')));
+        $this->resolver = new LookupResolver();
 
-            if ($enName) {
-                $this->categoryCache[$enName] = $category->id;
-            }
-            if ($arName) {
-                $this->categoryCache[$arName] = $category->id;
-            }
-        }
-
-        // Pre-load existing serial numbers to avoid duplicates
         $this->seenSerials = Asset::whereNotNull('serial_number')
             ->pluck('serial_number')
             ->map(fn ($s) => strtolower(trim($s)))
@@ -53,114 +41,122 @@ class AssetsImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpt
 
     public function model(array $row)
     {
-        // Resolve category by name (case-insensitive)
-        $categoryId = null;
-        $categoryName = trim($row['category'] ?? '');
-        if ($categoryName) {
-            $categoryId = $this->categoryCache[strtolower($categoryName)] ?? null;
-        }
+        $row = $this->normaliseHeaders($row);
 
-        // Resolve status - default to PURCHASED if empty or invalid
-        $statusValue = strtoupper(trim($row['status'] ?? 'PURCHASED'));
-        $validStatuses = array_column(AssetStatus::cases(), 'value');
-        if (!in_array($statusValue, $validStatuses)) {
-            $statusValue = AssetStatus::PURCHASED->value;
-        }
+        $nameEn = trim((string) ($row['asset_name_english'] ?? $row['name_en'] ?? $row['name'] ?? ''));
+        $nameAr = trim((string) ($row['asset_name_arabic'] ?? $row['name_ar'] ?? ''));
 
-        // Build translatable name
-        $nameEn = trim($row['name_en'] ?? '');
-        $nameAr = trim($row['name_ar'] ?? '');
-
-        if (empty($nameEn)) {
+        if ($nameEn === '') {
             $this->skippedCount++;
-            return null; // name_en is required
+            return null;
         }
 
-        // Check for duplicate serial_number
-        $serialNumber = trim($row['serial_number'] ?? '') ?: null;
+        $serialNumber = trim((string) ($row['serial_number'] ?? '')) ?: null;
         if ($serialNumber) {
             $serialLower = strtolower($serialNumber);
             if (isset($this->seenSerials[$serialLower])) {
                 $this->skippedCount++;
-                return null; // Skip duplicate serial
+                return null;
             }
             $this->seenSerials[$serialLower] = true;
         }
 
-        // Build translatable notes
-        $notesEn = trim($row['notes_en'] ?? '');
-        $notesAr = trim($row['notes_ar'] ?? '');
+        $categoryName = trim((string) ($row['asset_category'] ?? $row['category'] ?? ''));
+        $subCategoryName = trim((string) ($row['asset_sub_category'] ?? $row['sub_category'] ?? ''));
 
-        // Parse purchase_cost - strip currency symbols & commas
+        $categoryId = $categoryName ? $this->resolver->resolveCategory($categoryName, null) : null;
+        $subCategoryId = $subCategoryName && $categoryId
+            ? $this->resolver->resolveCategory($subCategoryName, $categoryId)
+            : null;
+
+        $manufacturerName = trim((string) ($row['manufacturer_brand'] ?? $row['manufacturer'] ?? ''));
+        $manufacturerId = $manufacturerName
+            ? $this->resolver->resolveOrCreate(Manufacturer::class, $manufacturerName)
+            : null;
+
+        $modelName = trim((string) ($row['model'] ?? ''));
+        $modelId = $modelName
+            ? $this->resolver->resolveOrCreate(
+                AssetModel::class,
+                $modelName,
+                $manufacturerId ? ['manufacturer_id' => $manufacturerId] : []
+            )
+            : null;
+
+        $supplierName = trim((string) (
+            $row['purchased_from_store'] ?? $row['supplier'] ?? $row['store'] ?? ''
+        ));
+        $supplierId = $supplierName
+            ? $this->resolver->resolveOrCreate(Supplier::class, $supplierName)
+            : null;
+
+        $statusId = $this->resolveStatusId($row['asset_status'] ?? $row['status'] ?? null);
+
+        $locationName = trim((string) ($row['asset_location'] ?? $row['location'] ?? ''));
+        $officeLocationId = $locationName
+            ? $this->resolver->resolveOrCreate(OfficeLocation::class, $locationName)
+            : null;
+
+        $manufacturerYear = null;
+        $rawYear = trim((string) ($row['manufacturer_year'] ?? ''));
+        if ($rawYear !== '' && preg_match('/(\d{4})/', $rawYear, $m)) {
+            $manufacturerYear = (int) $m[1];
+        }
+
+        $purchaseDate = $this->parseDate($row['purchase_date'] ?? null);
+        $warrantyExpiry = $this->parseDate($row['warranty_expiry_date'] ?? $row['warranty_expiry'] ?? null);
+
         $purchaseCost = null;
-        $rawCost = trim($row['purchase_cost'] ?? '');
+        $rawCost = trim((string) ($row['purchase_cost'] ?? ''));
         if ($rawCost !== '') {
             $purchaseCost = (float) preg_replace('/[^0-9.]/', '', $rawCost);
         }
 
-        // Parse dates - handle multiple formats
-        $purchaseDate = $this->parseDate($row['purchase_date'] ?? null);
-        $warrantyExpiry = $this->parseDate($row['warranty_expiry'] ?? null);
+        $notesEn = trim((string) ($row['notes_english'] ?? $row['notes_en'] ?? ''));
+        $notesAr = trim((string) ($row['notes_arabic'] ?? $row['notes_ar'] ?? ''));
+
+        $availableAssignmentStatusId = AssetAssignmentStatus::where('code', 'available')->value('id');
 
         $this->importedCount++;
 
-        // Use Asset::create() via the model() return so Eloquent events fire.
-        // The AssetObserver will auto-generate asset_tag and set created_by.
         return new Asset([
-            'serial_number'  => $serialNumber,
-            'name'           => array_filter(['en' => $nameEn, 'ar' => $nameAr ?: null]),
-            'category_id'    => $categoryId,
-            'manufacturer'   => trim($row['manufacturer'] ?? '') ?: null,
-            'model'          => trim($row['model'] ?? '') ?: null,
-            'status'         => $statusValue,
-            'purchase_date'  => $purchaseDate,
-            'purchase_cost'  => $purchaseCost,
+            'serial_number' => $serialNumber,
+            'name' => array_filter(['en' => $nameEn, 'ar' => $nameAr ?: null]),
+            'category_id' => $categoryId,
+            'sub_category_id' => $subCategoryId,
+            'manufacturer_id' => $manufacturerId,
+            'model_id' => $modelId,
+            'manufacturer_year' => $manufacturerYear,
+            'supplier_id' => $supplierId,
+            'status_id' => $statusId,
+            'assignment_status_id' => $availableAssignmentStatusId,
+            'purchase_date' => $purchaseDate,
+            'purchase_cost' => $purchaseCost,
             'warranty_expiry' => $warrantyExpiry,
-            'location'       => trim($row['location'] ?? '') ?: null,
-            'notes'          => array_filter(['en' => $notesEn ?: null, 'ar' => $notesAr ?: null]),
-            'created_by'     => auth()->id(),
+            'office_location_id' => $officeLocationId,
+            'notes' => array_filter(['en' => $notesEn ?: null, 'ar' => $notesAr ?: null]),
+            'created_by' => auth()->id(),
+            'is_active' => true,
         ]);
     }
 
     public function rules(): array
     {
         return [
-            'name_en'       => 'required|string|max:255',
+            'asset_name_english' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
             'serial_number' => 'nullable|string|max:255',
-            'category'      => 'nullable|string|max:255',
-            'manufacturer'  => 'nullable|string|max:255',
-            'model'         => 'nullable|string|max:255',
-            'status'        => 'nullable|string|max:50',
+            'manufacturer_year' => 'nullable',
             'purchase_date' => 'nullable',
             'purchase_cost' => 'nullable',
+            'warranty_expiry_date' => 'nullable',
             'warranty_expiry' => 'nullable',
-            'location'      => 'nullable|string|max:255',
-            'name_ar'       => 'nullable|string|max:255',
-            'notes_en'      => 'nullable|string|max:5000',
-            'notes_ar'      => 'nullable|string|max:5000',
-        ];
-    }
-
-    public function customValidationMessages(): array
-    {
-        return [
-            'name_en.required' => 'The Name (EN) column is required for each row.',
         ];
     }
 
     public function chunkSize(): int
     {
         return 200;
-    }
-
-    public function registerEvents(): array
-    {
-        return [
-            BeforeSheet::class => function (BeforeSheet $event) {
-                // Only process the first sheet (Assets data sheet)
-                // Skip lookup sheets if user accidentally leaves them
-            },
-        ];
     }
 
     public function getImportedCount(): int
@@ -173,37 +169,75 @@ class AssetsImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpt
         return $this->skippedCount;
     }
 
-    /**
-     * Parse a date value from Excel (could be numeric serial or string).
-     */
+    protected function normaliseHeaders(array $row): array
+    {
+        $clean = [];
+        foreach ($row as $key => $value) {
+            $clean[trim((string) $key)] = is_string($value) ? trim($value) : $value;
+        }
+        return $clean;
+    }
+
+    protected function resolveStatusId(?string $rawStatus): ?string
+    {
+        $raw = strtoupper(trim((string) $rawStatus));
+        if ($raw === '') {
+            return Status::forAssets()->where('code', 'purchased')->value('id');
+        }
+
+        $code = match ($raw) {
+            'PURSHAED', 'PURCHASED', 'PURCHASE' => 'purchased',
+            'AVAILABLE' => 'available',
+            'RESERVED' => 'reserved',
+            'ASSIGNED' => 'assigned',
+            'IN_REPAIR', 'IN-REPAIR', 'REPAIR' => 'in_repair',
+            'DAMAGED' => 'damaged',
+            'RETIRED' => 'retired',
+            'DISPOSED' => 'disposed',
+            'LOST' => 'lost',
+            default => 'purchased',
+        };
+
+        $id = Status::forAssets()->where('code', $code)->value('id');
+
+        if (! $id) {
+            $created = Status::create([
+                'code' => $code,
+                'name' => ['en' => ucfirst(str_replace('_', ' ', $code))],
+                'scope' => 'asset',
+                'is_active' => true,
+            ]);
+            $id = $created->id;
+        }
+
+        return $id;
+    }
+
     protected function parseDate($value): ?string
     {
         if (empty($value)) {
             return null;
         }
 
-        // If it's a numeric Excel serial date
         if (is_numeric($value)) {
             try {
                 return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((int) $value)->format('Y-m-d');
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 return null;
             }
         }
 
-        // Try standard date formats
         $formats = ['Y-m-d', 'd/m/Y', 'm/d/Y', 'd-m-Y', 'Y/m/d'];
         foreach ($formats as $format) {
-            $parsed = \DateTime::createFromFormat($format, trim($value));
+            $parsed = \DateTime::createFromFormat($format, trim((string) $value));
             if ($parsed !== false) {
                 return $parsed->format('Y-m-d');
             }
         }
 
-        // Last resort - let PHP try to figure it out
         try {
             return (new \DateTime($value))->format('Y-m-d');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return null;
         }
     }

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adda Inventory Hub — Advanced Asset Management System</title>
+<meta name="description" content="Adda Inventory Hub is a premium asset management platform offering real-time tracking, predictive analytics, and secure lifecycle management.">
+<style>
+/* ===== CSS Variables ===== */
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #16161f;
+  --bg-card-hover: #1c1c28;
+  --border: rgba(255,255,255,0.06);
+  --border-hover: rgba(255,255,255,0.12);
+  --text-primary: #f0efe9;
+  --text-secondary: rgba(240,239,233,0.55);
+  --text-muted: rgba(240,239,233,0.35);
+  --accent: #2dd4a8;
+  --accent-dim: rgba(45,212,168,0.12);
+  --accent-glow: rgba(45,212,168,0.25);
+  --gold: #c9a84c;
+  --font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ===== Reset ===== */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; font-size:16px; }
+body {
+  font-family: var(--font);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+
+/* ===== Utilities ===== */
+.container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+.section { padding: 100px 0; }
+.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+
+/* ===== Navigation ===== */
+.nav {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  padding: 18px 0;
+  background: rgba(10,10,15,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: padding 0.3s var(--ease);
+}
+.nav.scrolled { padding: 12px 0; }
+.nav .container { display:flex; align-items:center; justify-content:space-between; }
+.nav-logo {
+  font-size: 1.15rem; font-weight: 700;
+  letter-spacing: -0.02em;
+  display:flex; align-items:center; gap:10px;
+}
+.nav-logo svg { width:28px; height:28px; }
+.nav-links { display:flex; gap:32px; align-items:center; }
+.nav-links a {
+  font-size: 0.85rem; font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  transition: color 0.3s;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.nav-links a.btn-primary { color: #000; }
+.nav-links a.btn-primary:hover { color: #000; }
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding: 10px 22px; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all 0.3s var(--ease);
+  cursor: pointer; border: none;
+}
+.btn-primary {
+  background: var(--accent); color: #000;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 24px var(--accent-glow);
+  transform: translateY(-1px);
+}
+.btn-secondary {
+  background: transparent; color: var(--text-primary);
+  border: 1px solid var(--border-hover);
+}
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.nav-toggle { display:none; background:none; border:none; cursor:pointer; padding:4px; }
+.nav-toggle svg { width:24px; height:24px; stroke:var(--text-primary); }
+
+/* ===== Hero ===== */
+.hero {
+  min-height: 100vh; display:flex; align-items:center;
+  padding-top: 80px; position:relative; overflow:hidden;
+}
+.hero::before {
+  content:''; position:absolute; top:-200px; right:-200px;
+  width:600px; height:600px; border-radius:50%;
+  background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+  pointer-events:none; animation: pulse 8s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:0.4; transform:scale(1); }
+  50% { opacity:0.7; transform:scale(1.1); }
+}
+.hero .container { display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; position:relative; z-index:1; }
+.hero-badge {
+  display:inline-flex; align-items:center; gap:8px;
+  padding: 6px 14px; border-radius: 20px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.hero-badge span { width:6px; height:6px; border-radius:50%; background:var(--accent); animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1;}50%{opacity:0.3;} }
+.hero h1 {
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+}
+.hero h1 .gradient {
+  background: linear-gradient(135deg, var(--accent), #6ee7b7);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero p {
+  font-size: 1.05rem; color: var(--text-secondary);
+  max-width: 480px; margin-bottom: 36px; line-height: 1.7;
+}
+.hero-actions { display:flex; gap:14px; flex-wrap:wrap; }
+
+/* Dashboard Mockup */
+.dashboard-mock {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px; position:relative;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+  animation: floatUp 1s var(--ease) both;
+}
+@keyframes floatUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
+.mock-topbar { display:flex; align-items:center; gap:8px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px solid var(--border); }
+.mock-dot { width:10px; height:10px; border-radius:50%; }
+.mock-dot:nth-child(1){background:#ff5f57;} .mock-dot:nth-child(2){background:#febc2e;} .mock-dot:nth-child(3){background:#28c840;}
+.mock-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+.mock-stat {
+  background: var(--bg-secondary); border-radius:10px;
+  padding: 14px; border: 1px solid var(--border);
+}
+.mock-stat-label { font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+.mock-stat-value { font-size:1.2rem; font-weight:700; }
+.mock-stat-value.green { color: var(--accent); }
+.mock-stat-value.gold { color: var(--gold); }
+.mock-chart {
+  background: var(--bg-secondary); border-radius:10px;
+  padding: 16px; border: 1px solid var(--border);
+  height: 120px; position:relative; overflow:hidden;
+}
+.mock-chart svg { width:100%; height:100%; }
+.mock-bars { display:flex; align-items:flex-end; gap:6px; height:80px; padding-top:10px; }
+.mock-bar {
+  flex:1; border-radius:4px 4px 0 0;
+  background: linear-gradient(180deg, var(--accent), rgba(45,212,168,0.3));
+  animation: growBar 1.2s var(--ease) both;
+}
+@keyframes growBar { from{height:0;}to{height:var(--h);} }
+
+/* ===== Features ===== */
+.features { background: var(--bg-secondary); }
+.section-header { text-align:center; margin-bottom:64px; }
+.section-label {
+  display:inline-block; font-size:0.75rem; font-weight:600;
+  letter-spacing:0.1em; text-transform:uppercase;
+  color: var(--accent); margin-bottom:14px;
+}
+.section-header h2 {
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 700; letter-spacing:-0.02em;
+  margin-bottom: 16px;
+}
+.section-header p { color: var(--text-secondary); max-width:560px; margin:0 auto; font-size:1rem; }
+.features-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:20px; }
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 32px 24px;
+  transition: all 0.4s var(--ease);
+  position:relative; overflow:hidden;
+}
+.feature-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity:0; transition: opacity 0.4s;
+}
+.feature-card:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card-hover);
+  transform: translateY(-4px);
+}
+.feature-card:hover::before { opacity:1; }
+.feature-icon {
+  width:48px; height:48px; border-radius:12px;
+  background: var(--accent-dim);
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:20px;
+}
+.feature-icon svg { width:22px; height:22px; stroke:var(--accent); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.feature-card h3 { font-size:1.05rem; font-weight:650; margin-bottom:10px; letter-spacing:-0.01em; }
+.feature-card p { font-size:0.88rem; color:var(--text-secondary); line-height:1.65; }
+
+/* ===== Stats ===== */
+.stats .container { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
+.stat-item { text-align:center; padding:32px 16px; }
+.stat-number { font-size:2.4rem; font-weight:800; letter-spacing:-0.03em; margin-bottom:6px; }
+.stat-number .accent { color: var(--accent); }
+.stat-label { font-size:0.82rem; color:var(--text-secondary); letter-spacing:0.02em; }
+
+/* ===== CTA ===== */
+.cta { text-align:center; }
+.cta-box {
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(45,212,168,0.05) 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 64px 40px;
+  position:relative; overflow:hidden;
+}
+.cta-box::after {
+  content:''; position:absolute; bottom:-100px; left:50%; transform:translateX(-50%);
+  width:400px; height:200px; border-radius:50%;
+  background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+}
+.cta-box h2 { font-size:clamp(1.6rem,3vw,2.2rem); font-weight:700; margin-bottom:16px; letter-spacing:-0.02em; position:relative; z-index:1; }
+.cta-box p { color:var(--text-secondary); max-width:480px; margin:0 auto 32px; position:relative; z-index:1; }
+.cta-box .btn { position:relative; z-index:1; }
+
+/* ===== Footer ===== */
+.footer {
+  padding: 48px 0 32px;
+  border-top: 1px solid var(--border);
+}
+.footer .container { display:flex; flex-direction:column; align-items:center; gap:24px; }
+.footer-links { display:flex; gap:28px; }
+.footer-links a { font-size:0.82rem; color:var(--text-secondary); transition:color 0.3s; }
+.footer-links a:hover { color:var(--text-primary); }
+.footer-bottom { text-align:center; }
+.footer-copy { font-size:0.78rem; color:var(--text-muted); margin-bottom:8px; }
+.footer-credit { font-size:0.72rem; color:var(--text-muted); letter-spacing:0.06em; }
+.footer-credit span { color: var(--gold); font-weight:600; }
+
+/* ===== Responsive ===== */
+@media(max-width:1024px) {
+  .features-grid { grid-template-columns:repeat(2,1fr); }
+  .stats .container { grid-template-columns:repeat(2,1fr); }
+}
+@media(max-width:768px) {
+  .hero .container { grid-template-columns:1fr; text-align:center; }
+  .hero p { margin-left:auto; margin-right:auto; }
+  .hero-actions { justify-content:center; }
+  .dashboard-mock { margin-top:20px; }
+  .nav-links { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(10,10,15,0.97); flex-direction:column; justify-content:center; align-items:center; gap:24px; }
+  .nav-links.open { display:flex; }
+  .nav-toggle { display:block; }
+  .section { padding:64px 0; }
+}
+@media(max-width:540px) {
+  .features-grid { grid-template-columns:1fr; }
+  .stats .container { grid-template-columns:1fr 1fr; }
+  .mock-grid { grid-template-columns:1fr; }
+  .cta-box { padding:40px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== Navigation ===== -->
+<nav class="nav" id="navbar">
+  <div class="container">
+    <a href="#" class="nav-logo">
+      <!-- Logo Icon -->
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="24" height="24" rx="6" stroke="#2dd4a8" stroke-width="2"/>
+        <path d="M9 18V12L14 9L19 12V18L14 21L9 18Z" fill="#2dd4a8" fill-opacity="0.2" stroke="#2dd4a8" stroke-width="1.5" stroke-linejoin="round"/>
+        <circle cx="14" cy="14" r="2" fill="#2dd4a8"/>
+      </svg>
+      Adda Inventory Hub
+    </a>
+    <div class="nav-links" id="navLinks">
+      <a href="#features">Features</a>
+      <a href="#stats">Performance</a>
+      <a href="#cta">Contact</a>
+      <a href="mailto:info@ideacrafttechnology.com?subject=Request%20Access%20-%20Adda%20Inventory%20Hub&body=Hello%20Ideacraft%20Technology%20Team%2C%0A%0AI%20would%20like%20to%20request%20access%20to%20Adda%20Inventory%20Hub%20and%20learn%20more%20about%20how%20it%20can%20optimize%20our%20asset%20management.%0A%0ABest%20regards%2C%0A%5BYour%20Name%5D" class="btn btn-primary">Request Access</a>
+    </div>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== Hero ===== -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-badge"><span></span> Now Available</div>
+      <h1>Precision Asset Tracking, <span class="gradient">Reimagined.</span></h1>
+      <p>A unified command center for every asset in your organization. Track, analyze, and optimize your entire inventory lifecycle with enterprise-grade precision.</p>
+      <div class="hero-actions">
+        <a href="mailto:info@ideacrafttechnology.com?subject=Request%20Access%20-%20Adda%20Inventory%20Hub&body=Hello%20Ideacraft%20Technology%20Team%2C%0A%0AI%20would%20like%20to%20request%20access%20to%20Adda%20Inventory%20Hub%20and%20learn%20more%20about%20how%20it%20can%20optimize%20our%20asset%20management.%0A%0ABest%20regards%2C%0A%5BYour%20Name%5D" class="btn btn-primary">
+          Get Started
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#features" class="btn btn-secondary">Explore Features</a>
+      </div>
+    </div>
+    <!-- Dashboard Mockup -->
+    <div class="dashboard-mock">
+      <div class="mock-topbar">
+        <div class="mock-dot"></div><div class="mock-dot"></div><div class="mock-dot"></div>
+      </div>
+      <div class="mock-grid">
+        <div class="mock-stat">
+          <div class="mock-stat-label">Total Assets</div>
+          <div class="mock-stat-value">12,847</div>
+        </div>
+        <div class="mock-stat">
+          <div class="mock-stat-label">Utilization</div>
+          <div class="mock-stat-value green">94.2%</div>
+        </div>
+        <div class="mock-stat">
+          <div class="mock-stat-label">Value Tracked</div>
+          <div class="mock-stat-value gold">$4.2M</div>
+        </div>
+      </div>
+      <div class="mock-chart">
+        <div class="mock-bars">
+          <div class="mock-bar" style="--h:45%"></div>
+          <div class="mock-bar" style="--h:70%"></div>
+          <div class="mock-bar" style="--h:55%"></div>
+          <div class="mock-bar" style="--h:85%"></div>
+          <div class="mock-bar" style="--h:65%"></div>
+          <div class="mock-bar" style="--h:90%"></div>
+          <div class="mock-bar" style="--h:75%"></div>
+          <div class="mock-bar" style="--h:60%"></div>
+          <div class="mock-bar" style="--h:80%"></div>
+          <div class="mock-bar" style="--h:50%"></div>
+          <div class="mock-bar" style="--h:95%"></div>
+          <div class="mock-bar" style="--h:70%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Features ===== -->
+<section class="features section" id="features">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-label">Capabilities</div>
+      <h2>Everything You Need to Manage Assets</h2>
+      <p>Purpose-built tools that give your team complete visibility and control over every asset in your portfolio.</p>
+    </div>
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4m-10-10h4m12 0h4"/><path d="M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+        </div>
+        <h3>Real-time Tracking</h3>
+        <p>Monitor asset locations, status, and conditions across every facility with live dashboard updates.</p>
+      </div>
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 4 5-8"/></svg>
+        </div>
+        <h3>Predictive Analytics</h3>
+        <p>Leverage AI-driven insights to forecast maintenance needs, optimize utilization, and reduce costs.</p>
+      </div>
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+        </div>
+        <h3>Secure Lifecycle Mgmt</h3>
+        <p>End-to-end encryption and role-based access ensure your asset data stays protected at every stage.</p>
+      </div>
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+        </div>
+        <h3>Automated Auditing</h3>
+        <p>Generate compliance-ready audit reports automatically with detailed change logs and verification trails.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Stats ===== -->
+<section class="stats section" id="stats">
+  <div class="container">
+    <div class="stat-item">
+      <div class="stat-number">99.9<span class="accent">%</span></div>
+      <div class="stat-label">Uptime SLA</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">50<span class="accent">M+</span></div>
+      <div class="stat-label">Assets Tracked</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">200<span class="accent">+</span></div>
+      <div class="stat-label">Enterprise Clients</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">4.9<span class="accent">/5</span></div>
+      <div class="stat-label">Customer Rating</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta section" id="cta">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Ready to Transform Your Asset Management?</h2>
+      <p>Join industry leaders who trust Adda Inventory Hub to power their operations. Start your journey today.</p>
+      <a href="mailto:info@ideacrafttechnology.com?subject=Request%20Access%20-%20Adda%20Inventory%20Hub&body=Hello%20Ideacraft%20Technology%20Team%2C%0A%0AI%20would%20like%20to%20request%20access%20to%20Adda%20Inventory%20Hub%20and%20learn%20more%20about%20how%20it%20can%20optimize%20our%20asset%20management.%0A%0ABest%20regards%2C%0A%5BYour%20Name%5D" class="btn btn-primary">
+        Request Access
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-links">
+      <a href="#features">Features</a>
+      <a href="#stats">Performance</a>
+      <a href="#cta">Contact</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">&copy; 2026 Adda Inventory Hub. All rights reserved.</p>
+      <p class="footer-credit">Powered by <a href="https://ideacrafttechnology.com" target="_blank" rel="noopener noreferrer" style="color:var(--gold);font-weight:600;transition:opacity 0.3s;">ideacrafttechnology</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== Scripts ===== -->
+<script>
+// Navbar scroll effect
+const nav = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+
+// Mobile toggle
+const toggle = document.getElementById('navToggle');
+const links = document.getElementById('navLinks');
+toggle.addEventListener('click', () => links.classList.toggle('open'));
+links.querySelectorAll('a').forEach(a => a.addEventListener('click', () => links.classList.remove('open')));
+
+// Intersection Observer for fade-in
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }});
+}, { threshold: 0.15 });
+document.querySelectorAll('.feature-card, .stat-item, .cta-box').forEach(el => {
+  el.style.opacity='0'; el.style.transform='translateY(24px)'; el.style.transition='opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>

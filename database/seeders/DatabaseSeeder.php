@@ -2,175 +2,329 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Category;
-use App\Models\Employee;
 use App\Models\Asset;
 use App\Models\Assignment;
-use App\Models\MaintenanceLog;
-use App\Enums\AssetStatus;
-use App\Enums\ConditionRating;
-use App\Enums\MaintenanceType;
-use App\Enums\MaintenanceStatus;
+use App\Models\Category;
+use App\Models\Employee;
+use App\Models\Lookups\AssetAssignmentStatus;
+use App\Models\Lookups\AssetCondition;
+use App\Models\Lookups\Department;
+use App\Models\Lookups\Manufacturer;
+use App\Models\Lookups\OfficeLocation;
+use App\Models\Lookups\Status;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // 1. Create Admin User (if not exists)
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@lca.local'],
+        $this->call(LookupsSeeder::class);
+        $this->call(RolesPermissionsSeeder::class);
+
+        $admin   = $this->makeUser('admin@lc.local',   'Administrator', 'admin');
+        $manager = $this->makeUser('manager@lc.local', 'Asset Manager', 'asset_manager');
+        $staff   = $this->makeUser('staff@lc.local',   'Staff User',    'user');
+
+        $employees = $this->seedEmployees();
+
+        if (! $staff->employee_id && isset($employees['Angel'])) {
+            $staff->update(['employee_id' => $employees['Angel']->id]);
+        }
+
+        $this->seedAssetsFromCsv($employees, $admin->id);
+    }
+
+    protected function makeUser(string $email, string $name, string $role): User
+    {
+        $user = User::firstOrCreate(
+            ['email' => $email],
             [
-                'id' => (string) Str::uuid(),
-                'full_name' => 'Administrator',
-                'password' => Hash::make('password123'),
-                'role' => 'admin',
+                'full_name' => $name,
+                'password' => Hash::make('password'),
                 'is_active' => true,
-            ]
+            ],
         );
 
-        // 2. Create Categories
-        $laptops = Category::create(['name' => ['en' => 'Laptops', 'ar' => 'أجهزة لابتوب']]);
-        $desktops = Category::create(['name' => ['en' => 'Desktops', 'ar' => 'أجهزة مكتبية']]);
-        $monitors = Category::create(['name' => ['en' => 'Monitors', 'ar' => 'شاشات']]);
-        $printers = Category::create(['name' => ['en' => 'Printers', 'ar' => 'طابعات']]);
+        if (! $user->hasRole($role)) {
+            $user->assignRole($role);
+        }
 
-        // 3. Create Employees
-        $employees = [
-            [
-                'employee_number' => 'EMP001',
-                'full_name_en' => 'John Doe',
-                'full_name_ar' => 'جون دو',
-                'email' => 'john.doe@lca.local',
-                'department' => ['en' => 'IT', 'ar' => 'تقنية المعلومات'],
-                'is_active' => true,
-            ],
-            [
-                'employee_number' => 'EMP002',
-                'full_name_en' => 'Sarah Smith',
-                'full_name_ar' => 'سارة سميث',
-                'email' => 'sarah.smith@lca.local',
-                'department' => ['en' => 'HR', 'ar' => 'الموارد البشرية'],
-                'is_active' => true,
-            ],
-            [
-                'employee_number' => 'EMP003',
-                'full_name_en' => 'Ali Mohamed',
-                'full_name_ar' => 'علي محمد',
-                'email' => 'ali.m@lca.local',
-                'department' => ['en' => 'Finance', 'ar' => 'المالية'],
-                'is_active' => true,
-            ],
+        return $user;
+    }
+
+    /** @return array<string, Employee> keyed by first name */
+    protected function seedEmployees(): array
+    {
+        $adminDept    = Department::where('code', 'admin')->value('id');
+        $accountsDept = Department::where('code', 'accounts_hr')->value('id');
+        $designDept   = Department::where('code', 'design')->value('id');
+        $opsDept      = Department::where('code', 'operations')->value('id');
+
+        $activeStatusId = Status::forStaff()->where('code', 'active')->value('id');
+
+        $rows = [
+            ['EMP-001', 'Angel',     'أنجل',     $adminDept],
+            ['EMP-002', 'Abdalla',   'عبدالله',   $accountsDept],
+            ['EMP-003', 'Shaikha',   'شيخة',     $designDept],
+            ['EMP-004', 'Dana',      'دانا',     $designDept],
+            ['EMP-005', 'Nadeen',    'نادين',    $designDept],
+            ['EMP-006', 'Afsal',     'أفصل',     $designDept],
+            ['EMP-007', 'Anbu',      'أنبو',     $designDept],
+            ['EMP-008', 'Montassar', 'منتصر',    $designDept],
+            ['EMP-009', 'Tixan',     'تيكسان',   $designDept],
+            ['EMP-010', 'Thabet',    'ثابت',     $opsDept],
         ];
 
-        foreach ($employees as $empData) {
-            Employee::create($empData);
+        $out = [];
+        foreach ($rows as [$num, $en, $ar, $deptId]) {
+            $out[$en] = Employee::firstOrCreate(
+                ['employee_number' => $num],
+                [
+                    'full_name_en' => $en,
+                    'full_name_ar' => $ar,
+                    'department_id' => $deptId,
+                    'status_id' => $activeStatusId,
+                    'is_active' => true,
+                    'joining_date' => Carbon::now()->subYear(),
+                ],
+            );
         }
 
-        $allEmployees = Employee::all();
+        return $out;
+    }
 
-        // 4. Create Assets
-        $assets = [
-            [
-                'name' => ['en' => 'MacBook Pro 16"', 'ar' => 'ماك بوك برو 16 بوصة'],
-                'serial_number' => 'MBP2026X01',
-                'category_id' => $laptops->id,
-                'status' => AssetStatus::ASSIGNED->value,
-                'manufacturer' => 'Apple',
-                'model' => 'M3 Max',
-                'purchase_date' => now()->subMonths(6),
-                'purchase_cost' => 3500.00,
-                'location' => 'HQ - Level 2',
-            ],
-            [
-                'name' => ['en' => 'Dell XPS 15', 'ar' => 'ديل إكس بي إس 15'],
-                'serial_number' => 'DELL7890QR',
-                'category_id' => $laptops->id,
-                'status' => AssetStatus::AVAILABLE->value,
-                'manufacturer' => 'Dell',
-                'model' => '9530',
-                'purchase_date' => now()->subMonths(12),
-                'purchase_cost' => 2200.00,
-                'location' => 'HQ - IT Room',
-            ],
-            [
-                'name' => ['en' => 'LG UltraWide 34"', 'ar' => 'إل جي ألترا وايد 34'],
-                'serial_number' => 'LG-MON-4455',
-                'category_id' => $monitors->id,
-                'status' => AssetStatus::AVAILABLE->value,
-                'manufacturer' => 'LG',
-                'model' => '34WP65G-B',
-                'purchase_date' => now()->subMonths(2),
-                'purchase_cost' => 450.00,
-                'location' => 'HQ - Warehouse',
-            ],
-            [
-                'name' => ['en' => 'HP LaserJet Pro', 'ar' => 'إتش بي ليزر جيت برو'],
-                'serial_number' => 'HP-PRNT-1122',
-                'category_id' => $printers->id,
-                'status' => AssetStatus::IN_REPAIR->value,
-                'manufacturer' => 'HP',
-                'model' => 'M404dn',
-                'purchase_date' => now()->subYears(2),
-                'purchase_cost' => 300.00,
-                'location' => 'External Service Center',
-            ],
+    protected function seedAssetsFromCsv(array $employees, string $adminId): void
+    {
+        $csvPath = base_path('static/Updated_Asset_Management.csv');
+        if (! is_file($csvPath)) {
+            $this->command->warn("CSV file not found at {$csvPath} — skipping asset import.");
+            return;
+        }
+
+        $statusMap = [
+            'RESERVED'  => Status::forAssets()->where('code', 'reserved')->value('id'),
+            'DAMAGED'   => Status::forAssets()->where('code', 'damaged')->value('id'),
+            'PURSHAED'  => Status::forAssets()->where('code', 'purchased')->value('id'),
+            'PURCHASED' => Status::forAssets()->where('code', 'purchased')->value('id'),
+            'AVAILABLE' => Status::forAssets()->where('code', 'available')->value('id'),
         ];
 
-        foreach ($assets as $assetData) {
-            Asset::create(array_merge($assetData, ['created_by' => $admin->id]));
+        $goodCondId    = AssetCondition::where('code', 'good')->value('id');
+        $damagedCondId = AssetCondition::where('code', 'damaged')->value('id');
+
+        $availableAssignmentId = AssetAssignmentStatus::where('code', 'available')->value('id');
+        $assignedAssignmentId  = AssetAssignmentStatus::where('code', 'assigned')->value('id');
+
+        $file = new \SplFileObject($csvPath, 'r');
+        $file->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY | \SplFileObject::READ_AHEAD);
+
+        $isHeader = true;
+        foreach ($file as $row) {
+            if (! is_array($row) || $row === [null]) {
+                continue;
+            }
+            if ($isHeader) {
+                $isHeader = false;
+                continue;
+            }
+            if (count($row) < 16) {
+                $row = array_pad($row, 16, null);
+            }
+
+            [$nameEn, $nameAr, $serial, $catStr, $subCatStr, $manuStr, $modelStr,
+                $year, $purchasedFrom, $statusStr, $purchaseDate, $purchaseCost,
+                $warrantyExpiry, $locationStr, $notesEn, $notesAr] = $row;
+
+            $serial = trim((string) $serial);
+            if ($serial === '') {
+                continue;
+            }
+            if (Asset::where('serial_number', $serial)->exists()) {
+                continue;
+            }
+
+            $statusCode = strtoupper(trim((string) $statusStr));
+            $statusId   = $statusMap[$statusCode] ?? $statusMap['AVAILABLE'];
+            $condId     = $statusCode === 'DAMAGED' ? $damagedCondId : $goodCondId;
+
+            $nameEn = trim((string) $nameEn);
+            if ($nameEn === '') {
+                $nameEn = trim((string) $manuStr) ?: 'Unnamed Asset';
+            }
+            $nameAr = trim((string) $nameAr);
+
+            $assigneeName = $this->extractAssignee((string) $notesEn);
+            $assignedEmployee = $assigneeName ? ($employees[$assigneeName] ?? null) : null;
+
+            $assignmentStatusId = $assignedEmployee ? $assignedAssignmentId : $availableAssignmentId;
+
+            [$catId, $subCatId] = $this->resolveCategory($catStr, $subCatStr);
+
+            $description = null;
+            $modelClean = trim((string) $modelStr);
+            if ($modelClean !== '') {
+                $description = ['en' => $modelClean];
+            }
+
+            $notes = [];
+            $notesEnClean = trim((string) $notesEn);
+            $notesArClean = trim((string) $notesAr);
+            if ($notesEnClean !== '') $notes['en'] = $notesEnClean;
+            if ($notesArClean !== '') $notes['ar'] = $notesArClean;
+            $notes = $notes ?: null;
+
+            $yearClean = trim((string) $year);
+            $manuYear = ($yearClean !== '' && is_numeric($yearClean)) ? (int) $yearClean : null;
+
+            $costClean = trim((string) $purchaseCost);
+            $cost = ($costClean !== '' && is_numeric($costClean)) ? (float) $costClean : null;
+
+            $nameField = ['en' => $nameEn];
+            if ($nameAr !== '') {
+                $nameField['ar'] = $nameAr;
+            }
+
+            $asset = Asset::create([
+                'serial_number'        => $serial,
+                'name'                 => $nameField,
+                'category_id'          => $catId,
+                'sub_category_id'      => $subCatId,
+                'manufacturer_id'      => $this->resolveManufacturer($manuStr),
+                'manufacturer_year'    => $manuYear,
+                'status_id'            => $statusId,
+                'office_location_id'   => $this->resolveLocation($locationStr),
+                'condition_id'         => $condId,
+                'purchase_date'        => $this->parseDate($purchaseDate),
+                'purchase_cost'        => $cost,
+                'warranty_expiry'      => $this->parseDate($warrantyExpiry),
+                'description'          => $description,
+                'notes'                => $notes,
+                'assignment_status_id' => $assignmentStatusId,
+                'is_active'            => true,
+                'created_by'           => $adminId,
+            ]);
+
+            if ($assignedEmployee) {
+                Assignment::create([
+                    'asset_id'             => $asset->id,
+                    'employee_id'          => $assignedEmployee->id,
+                    'assigned_by'          => $adminId,
+                    'checked_out_at'       => Carbon::now()->subMonths(2),
+                    'condition_out_id'     => $condId,
+                    'assignment_status_id' => $assignedAssignmentId,
+                    'is_active'            => true,
+                    'notes'                => $notes,
+                ]);
+            }
+        }
+    }
+
+    protected function resolveManufacturer(?string $name): ?string
+    {
+        $name = trim((string) $name);
+        if ($name === '') {
+            return null;
+        }
+        $code = Str::slug($name, '_');
+        if ($code === '') {
+            return null;
         }
 
-        $allAssets = Asset::all();
-
-        // 5. Create active assignments for ASSIGNED assets
-        $assignedAsset = Asset::where('status', AssetStatus::ASSIGNED->value)->first();
-        if ($assignedAsset) {
-            Assignment::create([
-                'asset_id' => $assignedAsset->id,
-                'employee_id' => $allEmployees->first()->id,
-                'assigned_by' => $admin->id,
-                'checked_out_at' => now()->subMonths(5),
-                'condition_out' => ConditionRating::GOOD->value,
+        return Manufacturer::firstOrCreate(
+            ['code' => $code],
+            [
+                'name' => ['en' => $name],
+                'sort_order' => 999,
                 'is_active' => true,
-                'notes' => 'Primary workstation assigned upon joining.',
-            ]);
+            ],
+        )->id;
+    }
+
+    protected function resolveLocation(?string $name): ?string
+    {
+        $name = trim((string) $name);
+        if ($name === '') {
+            return null;
+        }
+        $code = Str::slug($name, '_');
+        if ($code === '') {
+            return null;
         }
 
-        // 6. Create Maintenance Logs
-        $repairAsset = Asset::where('status', AssetStatus::IN_REPAIR->value)->first();
-        if ($repairAsset) {
-            MaintenanceLog::create([
-                'asset_id' => $repairAsset->id,
-                'technician_id' => $admin->id,
-                'type' => MaintenanceType::REPAIR->value,
-                'status' => MaintenanceStatus::IN_PROGRESS->value,
-                'description' => 'Replacing fuser unit and paper rollers.',
-                'scheduled_date' => now()->subDays(2),
-                'cost' => 120.00,
-                'vendor' => 'HP Authorized Service',
-            ]);
+        return OfficeLocation::firstOrCreate(
+            ['code' => $code],
+            [
+                'name' => ['en' => $name],
+                'sort_order' => 999,
+                'is_active' => true,
+            ],
+        )->id;
+    }
+
+    /** @return array{0: ?string, 1: ?string} [categoryId, subCategoryId] */
+    protected function resolveCategory(?string $catName, ?string $subName): array
+    {
+        $catName = trim((string) $catName);
+        $subName = trim((string) $subName);
+
+        $parentId = null;
+        if ($catName !== '') {
+            $parent = Category::query()
+                ->whereNull('parent_id')
+                ->where('name->en', $catName)
+                ->first();
+
+            if (! $parent) {
+                $parent = Category::create([
+                    'name' => ['en' => $catName],
+                    'parent_id' => null,
+                ]);
+            }
+            $parentId = $parent->id;
         }
 
-        // 7. Completed Maintenance Log (History)
-        $availableAsset = Asset::where('status', AssetStatus::AVAILABLE->value)->first();
-        if ($availableAsset) {
-            MaintenanceLog::create([
-                'asset_id' => $availableAsset->id,
-                'technician_id' => $admin->id,
-                'type' => MaintenanceType::INSPECTION->value,
-                'status' => MaintenanceStatus::COMPLETED->value,
-                'description' => 'Regular health check and cleaning.',
-                'scheduled_date' => now()->subMonths(3),
-                'completed_date' => now()->subMonths(3)->addDays(1),
-                'cost' => 0,
-            ]);
+        $subId = null;
+        if ($subName !== '') {
+            $sub = Category::query()
+                ->where('parent_id', $parentId)
+                ->where('name->en', $subName)
+                ->first();
+
+            if (! $sub) {
+                $sub = Category::create([
+                    'name' => ['en' => $subName],
+                    'parent_id' => $parentId,
+                ]);
+            }
+            $subId = $sub->id;
         }
+
+        return [$parentId, $subId];
+    }
+
+    protected function parseDate(?string $value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '') {
+            return null;
+        }
+        try {
+            return Carbon::parse($value)->toDateString();
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    protected function extractAssignee(string $notes): ?string
+    {
+        $normalised = str_replace(['’', "\xE2\x80\x99"], "'", $notes);
+        if (! preg_match("/In\s+([A-Za-z]+)'s\s+use/i", $normalised, $m)) {
+            return null;
+        }
+        return ucfirst(strtolower($m[1]));
     }
 }

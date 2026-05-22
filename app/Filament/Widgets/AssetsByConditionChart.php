@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Assignment;
+use App\Models\Lookups\AssetCondition;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class AssetsByConditionChart extends ApexChartWidget
@@ -11,23 +11,76 @@ class AssetsByConditionChart extends ApexChartWidget
 
     public function getHeading(): string
     {
-        return __('Asset Condition Out (Last 10)');
+        return __('Assets by Condition');
     }
+
     protected static ?int $sort = 3;
+    protected int|string|array $columnSpan = 1;
 
     protected function getOptions(): array
     {
-        $data = Assignment::select('condition_out', \DB::raw('count(*) as count'))
-            ->groupBy('condition_out')
-            ->get();
+        $rows = AssetCondition::query()->orderBy('sort_order')->get();
+
+        $counts = \DB::table('assets')
+            ->select('condition_id', \DB::raw('count(*) as c'))
+            ->whereNotNull('condition_id')
+            ->groupBy('condition_id')
+            ->pluck('c', 'condition_id');
+
+        $colorMap = [
+            'excellent' => '#10B981',
+            'new' => '#10B981',
+            'good' => '#22D3EE',
+            'fair' => '#F59E0B',
+            'poor' => '#F97316',
+            'damaged' => '#EF4444',
+            'broken' => '#EF4444',
+        ];
+
+        $labels = [];
+        $series = [];
+        $colors = [];
+        foreach ($rows as $r) {
+            $labels[] = $r->getTranslatedName();
+            $series[] = (int) ($counts[$r->id] ?? 0);
+            $colors[] = $colorMap[$r->code] ?? '#94A3B8';
+        }
 
         return [
             'chart' => [
-                'type' => 'pie',
-                'height' => 300,
+                'type' => 'bar',
+                'height' => 320,
+                'fontFamily' => 'inherit',
+                'toolbar' => ['show' => false],
             ],
-            'labels' => $data->pluck('condition_out')->map(fn($item) => __($item))->toArray(),
-            'series' => $data->pluck('count')->map(fn($item) => (int) $item)->toArray(),
+            'series' => [['name' => __('Assets'), 'data' => $series]],
+            'xaxis' => [
+                'categories' => $labels,
+                'labels' => ['style' => ['fontSize' => '12px', 'colors' => '#64748B']],
+            ],
+            'yaxis' => [
+                'labels' => ['style' => ['fontSize' => '12px', 'colors' => '#64748B']],
+            ],
+            'plotOptions' => [
+                'bar' => [
+                    'borderRadius' => 8,
+                    'borderRadiusApplication' => 'end',
+                    'columnWidth' => '55%',
+                    'distributed' => true,
+                ],
+            ],
+            'colors' => $colors,
+            'dataLabels' => [
+                'enabled' => true,
+                'style' => ['fontSize' => '12px', 'fontWeight' => 600, 'colors' => ['#1E293B']],
+                'offsetY' => -20,
+            ],
+            'legend' => ['show' => false],
+            'grid' => [
+                'borderColor' => '#E2E8F0',
+                'strokeDashArray' => 4,
+            ],
+            'tooltip' => ['theme' => 'light'],
         ];
     }
 }

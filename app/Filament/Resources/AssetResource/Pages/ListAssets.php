@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AssetResource\Pages;
 use App\Filament\Resources\AssetResource;
 use App\Imports\AssetsImport;
 use App\Exports\AssetsTemplateExport;
+use App\Models\AuditLog;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Forms;
@@ -62,6 +63,21 @@ class ListAssets extends ListRecords
                         $failures = $import->failures();
                         $importedCount = $import->getImportedCount();
                         $skippedCount = $import->getSkippedCount();
+
+                        AuditLog::create([
+                            'performed_by' => auth()->id(),
+                            'performed_at' => now(),
+                            'action' => 'BULK_IMPORTED',
+                            'entity_type' => \App\Models\Asset::class,
+                            'new_values' => [
+                                'source_filename' => $data['file'],
+                                'total' => $importedCount + $skippedCount + $failures->count(),
+                                'imported' => $importedCount,
+                                'skipped' => $skippedCount,
+                                'failed' => $failures->count(),
+                            ],
+                            'ip_address' => request()->ip() ?? '127.0.0.1',
+                        ]);
 
                         // Clean up uploaded file
                         Storage::disk('local')->delete($data['file']);

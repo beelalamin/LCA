@@ -12,6 +12,7 @@ use App\Observers\AssetObserver;
 use App\Observers\AssignmentObserver;
 use App\Observers\MaintenanceLogObserver;
 use Illuminate\Support\Facades\URL;
+use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +36,12 @@ class AppServiceProvider extends ServiceProvider
         Asset::observe(AssetObserver::class);
         Assignment::observe(AssignmentObserver::class);
         MaintenanceLog::observe(MaintenanceLogObserver::class);
+
+        Role::saving(function (Role $role) {
+            if (empty($role->guard_name)) {
+                $role->guard_name = 'web';
+            }
+        });
 
         DB::listen(function ($query) {
              if ($query->time > 100) { // log queries slower than 100ms

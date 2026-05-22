@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360">
+  <title>ADDA</title>
+  <rect width="1200" height="360" fill="#0a0a0f"/>
+  <text x="600" y="130" text-anchor="middle" fill="#c9a84c"
+        font-family="Noto Sans Arabic, Arial, sans-serif"
+        font-size="62" font-weight="500" letter-spacing="6">ﺍّﺩﺃ</text>
+
+  <g font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="170" text-anchor="middle">
+    <text x="358.2" y="310" fill="#f0efe9">A</text>
+    <text x="520.2" y="310" fill="#2dd4a8">D</text>
+    <text x="679.8" y="310" fill="#2dd4a8">D</text>
+    <text x="841.8" y="310" fill="#f0efe9">A</text>
+  </g>
+</svg>

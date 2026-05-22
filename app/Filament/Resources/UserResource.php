@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class UserResource extends Resource
 {
@@ -29,7 +26,7 @@ class UserResource extends Resource
     {
         return __('Users');
     }
-    
+
     public static function getNavigationLabel(): string
     {
         return __('Users');
@@ -52,19 +49,24 @@ class UserResource extends Resource
                     ->email()
                     ->required()
                     ->unique(ignoreRecord: true),
-                Forms\Components\Select::make('role')
-                    ->label(__('Role'))
-                    ->options([
-                        'admin' => __('Admin'),
-                        'technician' => __('Technician'),
-                    ])
+                Forms\Components\Select::make('roles')
+                    ->label(__('Roles'))
+                    ->relationship('roles', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->searchable()
                     ->required(),
+                Forms\Components\Select::make('employee_id')
+                    ->label(__('Linked Employee'))
+                    ->relationship('employee', 'full_name_en')
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
                 Forms\Components\TextInput::make('password')
                     ->label(__('Password'))
                     ->password()
                     ->dehydrated(fn ($state) => filled($state))
-                    ->required(fn (string $context): bool => $context === 'create')
-                    ->visible(fn (string $context): bool => $context === 'create'),
+                    ->required(fn (string $context): bool => $context === 'create'),
                 Forms\Components\Toggle::make('is_active')
                     ->label(__('Active'))
                     ->default(true),
@@ -81,9 +83,12 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->label(__('Email'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('role')
-                    ->label(__('Role'))
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->label(__('Roles'))
                     ->badge(),
+                Tables\Columns\TextColumn::make('employee.full_name_en')
+                    ->label(__('Linked Employee'))
+                    ->placeholder('—'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label(__('Active'))
                     ->boolean(),
@@ -92,18 +97,18 @@ class UserResource extends Resource
                     ->dateTime(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('role')
+                Tables\Filters\SelectFilter::make('roles')
                     ->label(__('Role'))
-                    ->options([
-                        'admin' => __('Admin'),
-                        'technician' => __('Technician'),
-                    ]),
+                    ->relationship('roles', 'name')
+                    ->multiple(),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label(__('Active')),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
-                ])->icon('heroicon-m-ellipsis-vertical')
+                ])->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

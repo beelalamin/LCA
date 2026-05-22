@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" width="1200" height="500">
+  <title>ADDA</title>
+  <desc>ADDA - Advanced Digital Delivery Applications</desc>
+  <rect width="1200" height="500" fill="#0a0a0f"/>
+  <text x="600" y="130" text-anchor="middle" fill="#c9a84c"
+        font-family="Noto Sans Arabic, Arial, sans-serif"
+        font-size="62" font-weight="500" letter-spacing="6">ﺍّﺩﺃ</text>
+
+  <g font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="170" text-anchor="middle">
+    <text x="358.2" y="310" fill="#f0efe9">A</text>
+    <text x="520.2" y="310" fill="#2dd4a8">D</text>
+    <text x="679.8" y="310" fill="#2dd4a8">D</text>
+    <text x="841.8" y="310" fill="#f0efe9">A</text>
+  </g>
+
+  <line x1="320" y1="370" x2="880" y2="370" stroke="#2dd4a8" stroke-width="1.2" opacity="0.55"/>
+
+  <text x="600" y="420" text-anchor="middle" fill="#a8a79e"
+        font-family="Helvetica, Arial, sans-serif"
+        font-size="24" font-weight="500" letter-spacing="8">ADVANCED &#183; DIGITAL &#183; DELIVERY &#183; APPLICATIONS</text>
+</svg>

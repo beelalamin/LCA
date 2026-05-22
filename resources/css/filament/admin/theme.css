@@ -4,3 +4,127 @@
 [dir="rtl"] * {
     font-family: 'Noto Sans Arabic', sans-serif !important;
 }
+
+/* ---- Sidebar header brand: allow auto height (Filament inlines 1.5rem) ---- */
+.fi-sidebar-header .fi-logo {
+    height: auto !important;
+}
+
+/* ---- Brand mark switching for Filament's class-based dark mode.
+       Picture/source with `prefers-color-scheme: dark` doesn't follow
+       Filament's theme toggle, so we render both marks and toggle in CSS. ---- */
+.fi-brand-sidebar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.fi-brand-mark {
+    height: 2.25rem;
+    width: auto;
+    object-fit: contain;
+}
+.fi-brand-mark--dark { display: none; }
+.dark .fi-brand-mark--light { display: none; }
+.dark .fi-brand-mark--dark { display: inline-block; }
+
+.fi-brand-text {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: rgb(31 41 55);
+    white-space: nowrap;
+}
+.dark .fi-brand-text { color: rgb(243 244 246); }
+
+/* ---- Auth / simple-page two-column login ---- */
+
+/* Free the brand logo block from Filament's inline 1.5rem height (login only) */
+.fi-simple-layout .fi-logo {
+    height: auto !important;
+    display: block !important;
+    width: 100%;
+}
+
+/* Hide Filament's default heading + subheading — our brand block carries them */
+.fi-simple-layout .fi-simple-header-heading,
+.fi-simple-layout .fi-simple-header-subheading {
+    display: none;
+}
+
+/* LC logo above the form — own sizing (Tailwind utilities aren't compiled into this theme) */
+.fi-login-form-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+}
+.fi-login-form-header img {
+    height: 8rem !important;
+    width: auto !important;
+    object-fit: contain;
+    max-width: 100%;
+}
+.fi-login-form-header-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: rgb(180 83 9); /* amber-700 */
+    line-height: 1.1;
+}
+.dark .fi-login-form-header-title {
+    color: rgb(252 211 77); /* amber-300 */
+}
+
+/* Footer (page-level, just below the card) */
+.fi-login-footer {
+    width: 100%;
+    text-align: center;
+    padding: 0 1rem 1.5rem;
+}
+.fi-login-footer p {
+    font-size: 0.75rem;
+    color: rgb(156 163 175);
+    letter-spacing: 0.025em;
+}
+.dark .fi-login-footer p {
+    color: rgb(107 114 128);
+}
+
+@media (min-width: 768px) {
+    /* Widen the auth card so both columns fit comfortably. */
+    .fi-simple-layout .fi-simple-main {
+        max-width: 80rem !important;
+    }
+
+    /* Two-column grid: brand on the left, LC logo + form on the right. */
+    .fi-simple-layout .fi-simple-page > section {
+        grid-template-columns: 1fr 1fr;
+        gap: 3.5rem;
+        align-items: stretch;
+    }
+
+    /* Brand block: left column, span the full height, centered vertically. */
+    .fi-simple-layout .fi-simple-page > section > .fi-simple-header {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+        align-self: center;
+        align-items: flex-start;
+        text-align: start;
+    }
+
+    /* LC logo: right column, top row. */
+    .fi-simple-layout .fi-simple-page > section > .fi-login-form-header {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: end;
+    }
+
+    /* Form: right column, second row (stacks under the LC logo). */
+    .fi-simple-layout .fi-simple-page > section > .fi-form {
+        grid-column: 2;
+        grid-row: 2;
+        align-self: start;
+    }
+}
