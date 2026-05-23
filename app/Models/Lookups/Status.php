@@ -55,6 +55,19 @@ class Status extends BaseLookup
         return ['scope' => $model->scope];
     }
 
+    public function usages(): array
+    {
+        return [
+            [\App\Models\Asset::class, 'status_id'],
+            [\App\Models\Asset::class, 'warranty_status_id'],
+            [\App\Models\Asset::class, 'assignment_status_id'],
+            [\App\Models\Asset::class, 'maintenance_status_id'],
+            [\App\Models\User::class, 'status_id'],
+            [\App\Models\Transaction::class, 'assignment_status_id'],
+            [\App\Models\Transaction::class, 'maintenance_status_id'],
+        ];
+    }
+
     public function getColour(): string
     {
         if ($this->color) {

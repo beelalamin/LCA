@@ -17,7 +17,9 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TransactionResource extends Resource
 {
@@ -173,14 +175,24 @@ class TransactionResource extends Resource
                     ->formatStateUsing(fn ($state, $record) => $record->assignmentStatus?->getTranslatedName())
                     ->color(fn ($record) => $record->assignmentStatus?->getColour() ?? 'gray'),
                 Tables\Columns\TextColumn::make('assignedBy.display_name')->label(__('Performed By')),
-                Tables\Columns\TextColumn::make('checked_out_at')->label(__('Out'))->dateTime()->sortable(),
-                Tables\Columns\TextColumn::make('checked_in_at')->label(__('In'))->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('checked_out_at')
+                    ->label(__('Out'))
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('checked_in_at')
+                    ->label(__('In'))
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('conditionOut.code')
                     ->label(__('Condition Out'))
-                    ->formatStateUsing(fn ($state, $record) => $record->conditionOut?->getTranslatedName()),
+                    ->formatStateUsing(fn ($state, $record) => $record->conditionOut?->getTranslatedName())
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('conditionIn.code')
                     ->label(__('Condition In'))
-                    ->formatStateUsing(fn ($state, $record) => $record->conditionIn?->getTranslatedName()),
+                    ->formatStateUsing(fn ($state, $record) => $record->conditionIn?->getTranslatedName())
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
@@ -194,6 +206,65 @@ class TransactionResource extends Resource
                 Tables\Filters\SelectFilter::make('assignment_status_id')
                     ->label(__('Assignment Status'))
                     ->options(fn () => static::lookupOptions(Status::class, fn ($q) => $q->where('scope', Status::SCOPE_ASSIGNMENT))),
+                Filter::make('created_at_range')
+                    ->label(__('Date Range'))
+                    ->form([
+                        Forms\Components\Select::make('preset')
+                            ->label(__('Preset'))
+                            ->options([
+                                'last_day' => __('Last 24 hours'),
+                                'last_week' => __('Last week'),
+                                'last_month' => __('Last month'),
+                                'last_year' => __('Last year'),
+                                'custom' => __('Custom range'),
+                            ])
+                            ->live(),
+                        Forms\Components\DatePicker::make('from')
+                            ->label(__('From'))
+                            ->visible(fn ($get) => $get('preset') === 'custom'),
+                        Forms\Components\DatePicker::make('to')
+                            ->label(__('To'))
+                            ->visible(fn ($get) => $get('preset') === 'custom'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        $preset = $data['preset'] ?? null;
+
+                        if ($preset === 'last_day') {
+                            return $query->where('created_at', '>=', now()->subDay());
+                        }
+                        if ($preset === 'last_week') {
+                            return $query->where('created_at', '>=', now()->subWeek());
+                        }
+                        if ($preset === 'last_month') {
+                            return $query->where('created_at', '>=', now()->subMonth());
+                        }
+                        if ($preset === 'last_year') {
+                            return $query->where('created_at', '>=', now()->subYear());
+                        }
+                        if ($preset === 'custom') {
+                            if (! empty($data['from'])) {
+                                $query->whereDate('created_at', '>=', $data['from']);
+                            }
+                            if (! empty($data['to'])) {
+                                $query->whereDate('created_at', '<=', $data['to']);
+                            }
+                            return $query;
+                        }
+                        return $query;
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if (! empty($data['preset']) && $data['preset'] !== 'custom') {
+                            $indicators[] = __('Range: :preset', ['preset' => str_replace('_', ' ', $data['preset'])]);
+                        }
+                        if (! empty($data['from'])) {
+                            $indicators[] = __('From: :date', ['date' => $data['from']]);
+                        }
+                        if (! empty($data['to'])) {
+                            $indicators[] = __('To: :date', ['date' => $data['to']]);
+                        }
+                        return $indicators;
+                    }),
             ])
             ->actions([])
             ->bulkActions([]);

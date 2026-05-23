@@ -82,4 +82,24 @@ abstract class BaseLookup extends Model
     {
         return [];
     }
+
+    /**
+     * Tables/columns that reference this lookup. Override per subclass as:
+     *   [[Asset::class, 'department_id'], [User::class, 'department_id'], ...]
+     * Each entry is [related_model_class, foreign_key_column].
+     */
+    public function usages(): array
+    {
+        return [];
+    }
+
+    public function isInUse(): bool
+    {
+        foreach ($this->usages() as [$relatedClass, $foreignKey]) {
+            if ($relatedClass::query()->where($foreignKey, $this->getKey())->exists()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

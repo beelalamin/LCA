@@ -6,8 +6,6 @@ use App\Models\Lookups\Department;
 use App\Models\Lookups\JobTitle;
 use App\Models\Lookups\OfficeLocation;
 use Filament\Actions\Action;
-use Filament\Actions\Concerns\InteractsWithActions;
-use Filament\Actions\Contracts\HasActions;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
@@ -20,10 +18,8 @@ use Filament\Pages\Page;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
-class Profile extends Page implements HasActions
+class Profile extends Page
 {
-    use InteractsWithActions;
-
     protected static ?string $navigationIcon = 'heroicon-o-user';
     protected static string $view = 'filament.pages.profile';
     protected static bool $shouldRegisterNavigation = false;
@@ -107,7 +103,8 @@ class Profile extends Page implements HasActions
                             ->searchable()
                             ->preload()
                             ->disabled()
-                            ->dehydrated(false),
+                            ->dehydrated(false)
+                            ->helperText(__('Read-only. Contact an administrator to update.')),
                         Select::make('job_title_id')
                             ->label(__('Job Title'))
                             ->options(fn () => JobTitle::active()->ordered()->get()
@@ -115,7 +112,8 @@ class Profile extends Page implements HasActions
                             ->searchable()
                             ->preload()
                             ->disabled()
-                            ->dehydrated(false),
+                            ->dehydrated(false)
+                            ->helperText(__('Read-only. Contact an administrator to update.')),
                         Select::make('office_location_id')
                             ->label(__('Office Location'))
                             ->options(fn () => OfficeLocation::active()->ordered()->get()
@@ -123,13 +121,15 @@ class Profile extends Page implements HasActions
                             ->searchable()
                             ->preload()
                             ->disabled()
-                            ->dehydrated(false),
+                            ->dehydrated(false)
+                            ->helperText(__('Read-only. Contact an administrator to update.')),
                         DatePicker::make('joining_date')
                             ->label(__('Joining Date'))
                             ->disabled()
-                            ->dehydrated(false),
+                            ->dehydrated(false)
+                            ->helperText(__('Read-only. Contact an administrator to update.')),
                     ])
-                    ->description(__('Managed by administrators.')),
+                    ->description(__('These fields are maintained by HR / administrators and cannot be edited from your profile. Submit a request to your administrator to change them.')),
 
                 Section::make(__('Emergency Contact'))
                     ->columns(2)
@@ -165,19 +165,6 @@ class Profile extends Page implements HasActions
                     ]),
             ])
             ->statePath('data');
-    }
-
-    public function deleteAccountAction(): Action
-    {
-        return Action::make('deleteAccount')
-            ->label(__('Delete Account'))
-            ->color('danger')
-            ->icon('heroicon-o-trash')
-            ->requiresConfirmation()
-            ->modalHeading(__('Delete Account'))
-            ->modalDescription(__('Are you sure you want to delete your account? This action cannot be undone.'))
-            ->modalSubmitActionLabel(__('Yes, delete my account'))
-            ->action(fn () => $this->deleteAccount());
     }
 
     protected function getFormActions(): array
@@ -225,26 +212,5 @@ class Profile extends Page implements HasActions
         $this->data['new_password'] = '';
         $this->data['new_password_confirmation'] = '';
         $this->form->fill($this->data);
-    }
-
-    public function deleteAccount(): void
-    {
-        $user = auth()->user();
-
-        if (! $user) {
-            return;
-        }
-
-        $userId = $user->id;
-
-        auth()->logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
-
-        \Illuminate\Support\Facades\DB::table('users')->where('id', $userId)->delete();
-
-        throw new \Illuminate\Http\Exceptions\HttpResponseException(
-            new \Illuminate\Http\RedirectResponse(route('filament.admin.auth.login'))
-        );
     }
 }

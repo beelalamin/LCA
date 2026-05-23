@@ -2,6 +2,7 @@
 
 namespace App\Models\Lookups;
 
+use App\Models\Asset;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AssetModel extends BaseLookup
@@ -11,5 +12,12 @@ class AssetModel extends BaseLookup
     public function manufacturer(): BelongsTo
     {
         return $this->belongsTo(Manufacturer::class, 'manufacturer_id');
+    }
+
+    public function usages(): array
+    {
+        return [
+            [Asset::class, 'model_id'],
+        ];
     }
 }

@@ -18,31 +18,57 @@
     height: auto !important;
 }
 
-/* ---- Brand mark switching for Filament's class-based dark mode.
-       Picture/source with `prefers-color-scheme: dark` doesn't follow
-       Filament's theme toggle, so we render both marks and toggle in CSS. ---- */
+/* ---- Sidebar brand: stacked wordmark "ADDA / Inventory Hub". ---- */
 .fi-brand-sidebar {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    line-height: 1;
 }
-.fi-brand-mark {
-    height: 2.25rem;
-    width: auto;
-    object-fit: contain;
+.fi-brand-wordmark {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    line-height: 1;
 }
-.fi-brand-mark--dark { display: none; }
-.dark .fi-brand-mark--light { display: none; }
-.dark .fi-brand-mark--dark { display: inline-block; }
-
-.fi-brand-text {
-    font-size: 1rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
+[dir="rtl"] .fi-brand-wordmark {
+    align-items: flex-end;
+    text-align: right;
+}
+[dir="rtl"] .fi-brand-wordmark-line,
+[dir="rtl"] .fi-brand-wordmark-sub {
+    text-align: right;
+    width: 100%;
+}
+.fi-brand-wordmark-line {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
     color: rgb(31 41 55);
     white-space: nowrap;
 }
-.dark .fi-brand-text { color: rgb(243 244 246); }
+.dark .fi-brand-wordmark-line {
+    color: rgb(243 244 246);
+}
+.fi-brand-wordmark-accent {
+    color: rgb(5 150 105); /* emerald-600 */
+}
+.dark .fi-brand-wordmark-accent {
+    color: rgb(52 211 153); /* emerald-400 */
+}
+.fi-brand-wordmark-sub {
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: rgb(107 114 128);
+    white-space: nowrap;
+}
+.dark .fi-brand-wordmark-sub {
+    color: rgb(156 163 175);
+}
 
 /* ---- Auth / simple-page two-column login ---- */
 

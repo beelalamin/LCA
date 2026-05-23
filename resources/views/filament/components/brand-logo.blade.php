@@ -29,12 +29,10 @@
         </div>
     </div>
 @else
-    <div class="fi-brand-sidebar">
-        <img src="{{ asset('images/adda-logo-light-mark.svg') }}"
-             alt="ADDA"
-             class="fi-brand-mark fi-brand-mark--light">
-        <img src="{{ asset('images/adda-logo-dark-mark.svg') }}"
-             alt="ADDA"
-             class="fi-brand-mark fi-brand-mark--dark">
+    <div class="fi-brand-sidebar" aria-label="ADDA Inventory Hub">
+        <div class="fi-brand-wordmark">
+            <span class="fi-brand-wordmark-line">A<span class="fi-brand-wordmark-accent">DD</span>A</span>
+            <span class="fi-brand-wordmark-sub">{{ __('Inventory Hub') }}</span>
+        </div>
     </div>
 @endif

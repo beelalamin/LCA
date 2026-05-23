@@ -4,8 +4,10 @@ namespace App\Filament\Resources\Lookups\Concerns;
 
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 trait LookupResourceSchema
 {
@@ -32,12 +34,37 @@ trait LookupResourceSchema
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->disabled(fn ($record) => method_exists($record, 'isInUse') && $record->isInUse())
+                        ->tooltip(fn ($record) => (method_exists($record, 'isInUse') && $record->isInUse())
+                            ? __('Cannot delete: this entry is in use. Deactivate it instead.')
+                            : null)
+                        ->before(function ($record, Tables\Actions\DeleteAction $action) {
+                            if (method_exists($record, 'isInUse') && $record->isInUse()) {
+                                Notification::make()
+                                    ->title(__('Cannot delete: this entry is in use.'))
+                                    ->body(__('It is referenced by existing records. Deactivate it instead to hide it from new selections while preserving history.'))
+                                    ->danger()
+                                    ->send();
+                                $action->cancel();
+                            }
+                        }),
                 ])->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->before(function (Collection $records, Tables\Actions\DeleteBulkAction $action) {
+                            $blocked = $records->filter(fn ($r) => method_exists($r, 'isInUse') && $r->isInUse());
+                            if ($blocked->isNotEmpty()) {
+                                Notification::make()
+                                    ->title(__('Cannot delete: :count entries are in use.', ['count' => $blocked->count()]))
+                                    ->body(__('Remove or reassign references first, or deactivate them instead.'))
+                                    ->danger()
+                                    ->send();
+                                $action->cancel();
+                            }
+                        }),
                 ]),
             ]);
     }
