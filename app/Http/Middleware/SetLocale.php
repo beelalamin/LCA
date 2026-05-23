@@ -15,10 +15,29 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (session()->has('locale')) {
-            app()->setLocale(session('locale'));
+        $locale = $this->resolveLocale($request);
+
+        if ($locale) {
+            app()->setLocale($locale);
+            session(['locale' => $locale]);
         }
-        
+
         return $next($request);
+    }
+
+    protected function resolveLocale(Request $request): ?string
+    {
+        $supported = ['en', 'ar'];
+
+        if (session()->has('locale') && in_array(session('locale'), $supported, true)) {
+            return session('locale');
+        }
+
+        $user = $request->user();
+        if ($user && in_array($user->preferred_locale, $supported, true)) {
+            return $user->preferred_locale;
+        }
+
+        return null;
     }
 }

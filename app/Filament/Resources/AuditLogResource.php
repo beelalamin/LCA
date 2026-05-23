@@ -65,6 +65,7 @@ class AuditLogResource extends Resource
                 Tables\Columns\TextColumn::make('action')
                     ->label(__('Action'))
                     ->badge()
+                    ->formatStateUsing(fn (string $state) => __($state))
                     ->color(fn (string $state): string => match ($state) {
                         'REGISTERED' => 'info',
                         'CHECKED_OUT' => 'warning',
@@ -78,24 +79,31 @@ class AuditLogResource extends Resource
                 Tables\Columns\TextColumn::make('asset.name')
                     ->label(__('Asset'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('performedBy.full_name')
+                Tables\Columns\TextColumn::make('performedBy.display_name')
                     ->label(__('User'))
                     ->default(__('System'))
-                    ->searchable(),
+                    ->searchable(query: fn ($query, string $search) => $query
+                        ->whereHas('performedBy', fn ($q) => $q
+                            ->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('full_name_ar', 'like', "%{$search}%"))),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('action')
+                    ->label(__('Action'))
                     ->options([
-                        'REGISTERED' => 'REGISTERED',
-                        'CHECKED_OUT' => 'CHECKED_OUT',
-                        'CHECKED_IN' => 'CHECKED_IN',
-                        'STATUS_CHANGED' => 'STATUS_CHANGED',
-                        'MAINTENANCE_SCHEDULED' => 'MAINTENANCE_SCHEDULED',
-                        'MAINTENANCE_COMPLETED' => 'MAINTENANCE_COMPLETED',
-                        'BULK_IMPORTED' => 'BULK_IMPORTED',
+                        'REGISTERED' => __('REGISTERED'),
+                        'CHECKED_OUT' => __('CHECKED_OUT'),
+                        'CHECKED_IN' => __('CHECKED_IN'),
+                        'STATUS_CHANGED' => __('STATUS_CHANGED'),
+                        'MAINTENANCE_SCHEDULED' => __('MAINTENANCE_SCHEDULED'),
+                        'MAINTENANCE_COMPLETED' => __('MAINTENANCE_COMPLETED'),
+                        'BULK_IMPORTED' => __('BULK_IMPORTED'),
                     ]),
                 Tables\Filters\SelectFilter::make('performed_by')
-                    ->relationship('performedBy', 'full_name'),
+                    ->label(__('User'))
+                    ->relationship('performedBy', 'full_name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->display_name)
+                    ->searchable(),
                 Filter::make('performed_at_range')
                     ->label(__('Date Range'))
                     ->form([

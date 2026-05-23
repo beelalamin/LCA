@@ -47,6 +47,12 @@ class MyTransactionsHistory extends Page implements HasTable
                 Tables\Columns\TextColumn::make('type')
                     ->label(__('Type'))
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        Transaction::TYPE_REGISTERED => __('Registered'),
+                        Transaction::TYPE_CHECK_OUT => __('Check Out'),
+                        Transaction::TYPE_CHECK_IN => __('Check In'),
+                        default => $state,
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         Transaction::TYPE_REGISTERED => 'info',
                         Transaction::TYPE_CHECK_OUT => 'warning',

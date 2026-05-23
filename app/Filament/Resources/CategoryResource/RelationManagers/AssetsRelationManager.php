@@ -49,7 +49,7 @@ class AssetsRelationManager extends RelationManager
                     ->badge()
                     ->formatStateUsing(fn ($state, $record) => $record->status?->getTranslatedName())
                     ->color(fn ($record) => $record->status?->getColour() ?? 'gray'),
-                Tables\Columns\TextColumn::make('assignedToUser.full_name')
+                Tables\Columns\TextColumn::make('assignedToUser.display_name')
                     ->label(__('Assigned To'))
                     ->placeholder(__('Not Assigned')),
                 Tables\Columns\TextColumn::make('officeLocation.code')

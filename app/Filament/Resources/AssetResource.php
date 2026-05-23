@@ -230,7 +230,8 @@ class AssetResource extends Resource
                     ->searchable(),
                 Forms\Components\Select::make('assigned_to_user_id')
                     ->label(__('Assigned To'))
-                    ->options(fn () => User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
+                    ->options(fn () => User::where('is_active', true)->orderBy('full_name')->get()
+                        ->mapWithKeys(fn ($u) => [$u->id => $u->display_name]))
                     ->searchable(),
                 Forms\Components\DatePicker::make('assigned_date')->label(__('Assigned Date')),
                 Forms\Components\DatePicker::make('return_date')->label(__('Return Date')),
@@ -380,7 +381,7 @@ class AssetResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn ($state, $record) => $record->status?->getTranslatedName())
                     ->color(fn ($record) => $record->status?->getColour() ?? 'gray'),
-                Tables\Columns\TextColumn::make('assignedToUser.full_name')
+                Tables\Columns\TextColumn::make('assignedToUser.display_name')
                     ->label(__('Assigned To'))
                     ->placeholder(__('Not Assigned')),
                 Tables\Columns\TextColumn::make('officeLocation.code')
@@ -419,7 +420,8 @@ class AssetResource extends Resource
                         ->form([
                             Forms\Components\Select::make('user_id')
                                 ->label(__('User'))
-                                ->options(User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
+                                ->options(User::where('is_active', true)->orderBy('full_name')->get()
+                                    ->mapWithKeys(fn ($u) => [$u->id => $u->display_name]))
                                 ->required()
                                 ->searchable(),
                             Forms\Components\Select::make('condition_out_id')

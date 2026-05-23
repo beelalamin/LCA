@@ -126,7 +126,18 @@ class User extends Authenticatable implements HasName, FilamentUser
 
     public function getFilamentName(): string
     {
-        return $this->full_name ?? $this->email ?? '';
+        return $this->display_name;
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        $locale = app()->getLocale();
+
+        if ($locale === 'ar') {
+            return $this->full_name_ar ?: ($this->full_name ?: ($this->email ?? ''));
+        }
+
+        return $this->full_name ?: ($this->full_name_ar ?: ($this->email ?? ''));
     }
 
     public function canAccessPanel(Panel $panel): bool

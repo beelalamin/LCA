@@ -138,7 +138,8 @@ class UserResource extends Resource
                             ->where('is_active', true)
                             ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
                             ->orderBy('full_name')
-                            ->pluck('full_name', 'id'))
+                            ->get()
+                            ->mapWithKeys(fn ($u) => [$u->id => $u->display_name]))
                         ->searchable()
                         ->preload(),
                     Forms\Components\Select::make('status_id')
@@ -179,7 +180,12 @@ class UserResource extends Resource
                     ->disk('public')
                     ->circular(),
                 Tables\Columns\TextColumn::make('employee_number')->label(__('Employee Number'))->searchable()->toggleable(),
-                Tables\Columns\TextColumn::make('full_name')->label(__('Full Name'))->searchable(),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label(__('Full Name'))
+                    ->searchable(query: fn ($query, string $search) => $query
+                        ->where('full_name', 'like', "%{$search}%")
+                        ->orWhere('full_name_ar', 'like', "%{$search}%"))
+                    ->formatStateUsing(fn ($state, $record) => $record->display_name),
                 Tables\Columns\TextColumn::make('email')->label(__('Email'))->searchable(),
                 Tables\Columns\TextColumn::make('roles.name')->label(__('Roles'))->badge(),
                 Tables\Columns\TextColumn::make('department.code')
@@ -265,7 +271,7 @@ class UserResource extends Resource
                         ->formatStateUsing(fn ($state, $record) => $record->employmentType?->getTranslatedName()),
                     TextEntry::make('officeLocation.code')->label(__('Office Location'))
                         ->formatStateUsing(fn ($state, $record) => $record->officeLocation?->getTranslatedName()),
-                    TextEntry::make('lineManager.full_name')->label(__('Line Manager'))->placeholder('—'),
+                    TextEntry::make('lineManager.display_name')->label(__('Line Manager'))->placeholder('—'),
                     TextEntry::make('status.code')->label(__('Status'))->badge()
                         ->formatStateUsing(fn ($state, $record) => $record->status?->getTranslatedName())
                         ->color(fn ($record) => $record->status?->getColour() ?? 'gray'),

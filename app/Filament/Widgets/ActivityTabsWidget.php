@@ -75,7 +75,8 @@ class ActivityTabsWidget extends BaseWidget
             ->columns([
                 Tables\Columns\TextColumn::make('full_name')
                     ->label(__('User'))
-                    ->weight('semibold'),
+                    ->weight('semibold')
+                    ->formatStateUsing(fn ($state, $record) => $record->display_name),
                 Tables\Columns\TextColumn::make('department.code')
                     ->label(__('Department'))
                     ->formatStateUsing(fn ($state, $record) => $record->department?->getTranslatedName())
@@ -112,6 +113,7 @@ class ActivityTabsWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('action')
                     ->label(__('Action'))
                     ->badge()
+                    ->formatStateUsing(fn (string $state) => __($state))
                     ->color(fn (string $state): string => match ($state) {
                         'REGISTERED' => 'info',
                         'CHECKED_OUT' => 'warning',
@@ -128,7 +130,7 @@ class ActivityTabsWidget extends BaseWidget
                     ->url(fn ($record) => $record->asset_id
                         ? AssetResource::getUrl('view', ['record' => $record->asset_id])
                         : null),
-                Tables\Columns\TextColumn::make('performedBy.full_name')
+                Tables\Columns\TextColumn::make('performedBy.display_name')
                     ->label(__('User'))
                     ->default(__('System'))
                     ->color('gray'),

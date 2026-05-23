@@ -17,6 +17,10 @@ class MaintenanceLogResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
     protected static ?int $navigationSort = 4;
 
+    public static function getModelLabel(): string { return __('Maintenance'); }
+    public static function getPluralModelLabel(): string { return __('Maintenance Logs'); }
+    public static function getNavigationLabel(): string { return __('Maintenance Logs'); }
+
     public static function shouldRegisterNavigation(): bool
     {
         return false;
@@ -32,17 +36,19 @@ class MaintenanceLogResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('asset_id')
+                    ->label(__('Asset'))
                     ->relationship('asset', 'name')
                     ->required()
                     ->searchable(),
-                Forms\Components\TextInput::make('type'),
-                Forms\Components\TextInput::make('status'),
+                Forms\Components\TextInput::make('type')->label(__('Type')),
+                Forms\Components\TextInput::make('status')->label(__('Status')),
                 Forms\Components\Textarea::make('description')
+                    ->label(__('Description'))
                     ->columnSpanFull(),
-                Forms\Components\DatePicker::make('scheduled_date'),
-                Forms\Components\DatePicker::make('completed_date'),
-                Forms\Components\TextInput::make('cost')->numeric()->prefix('QAR'),
-                Forms\Components\TextInput::make('vendor'),
+                Forms\Components\DatePicker::make('scheduled_date')->label(__('Scheduled Date')),
+                Forms\Components\DatePicker::make('completed_date')->label(__('Completed Date')),
+                Forms\Components\TextInput::make('cost')->label(__('Cost'))->numeric()->prefix('QAR'),
+                Forms\Components\TextInput::make('vendor')->label(__('Vendor')),
             ]);
     }
 
@@ -50,12 +56,12 @@ class MaintenanceLogResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('asset.name')->searchable(),
-                Tables\Columns\TextColumn::make('type')->badge(),
-                Tables\Columns\TextColumn::make('status')->badge(),
-                Tables\Columns\TextColumn::make('technician.full_name'),
-                Tables\Columns\TextColumn::make('scheduled_date')->date(),
-                Tables\Columns\TextColumn::make('completed_date')->date(),
+                Tables\Columns\TextColumn::make('asset.name')->label(__('Asset'))->searchable(),
+                Tables\Columns\TextColumn::make('type')->label(__('Type'))->badge(),
+                Tables\Columns\TextColumn::make('status')->label(__('Status'))->badge(),
+                Tables\Columns\TextColumn::make('technician.display_name')->label(__('Technician')),
+                Tables\Columns\TextColumn::make('scheduled_date')->label(__('Scheduled Date'))->date(),
+                Tables\Columns\TextColumn::make('completed_date')->label(__('Completed Date'))->date(),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([

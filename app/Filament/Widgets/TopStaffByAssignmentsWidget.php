@@ -36,7 +36,9 @@ class TopStaffByAssignmentsWidget extends BaseWidget
                     ->limit(10)
             )
             ->columns([
-                Tables\Columns\TextColumn::make('full_name')->label(__('Staff')),
+                Tables\Columns\TextColumn::make('full_name')
+                    ->label(__('Staff'))
+                    ->formatStateUsing(fn ($state, $record) => $record->display_name),
                 Tables\Columns\TextColumn::make('active_assignments_count')->label(__('Active Assignments')),
                 Tables\Columns\TextColumn::make('held_value')
                     ->label(__('Held Value'))

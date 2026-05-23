@@ -42,7 +42,8 @@ class ViewAsset extends ViewRecord
                     ->form([
                         Forms\Components\Select::make('user_id')
                             ->label(__('User'))
-                            ->options(User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
+                            ->options(User::where('is_active', true)->orderBy('full_name')->get()
+                                ->mapWithKeys(fn ($u) => [$u->id => $u->display_name]))
                             ->required()
                             ->searchable(),
                         Forms\Components\Select::make('condition_out_id')

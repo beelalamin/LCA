@@ -90,7 +90,8 @@ class TransactionResource extends Resource
                     ->required(),
                 Forms\Components\Select::make('user_id')
                     ->label(__('User'))
-                    ->options(fn () => User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
+                    ->options(fn () => User::where('is_active', true)->orderBy('full_name')->get()
+                        ->mapWithKeys(fn ($u) => [$u->id => $u->display_name]))
                     ->searchable(),
                 Forms\Components\Select::make('department_id')
                     ->label(__('Department (snapshot)'))
@@ -160,13 +161,18 @@ class TransactionResource extends Resource
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('asset.asset_tag')->label(__('Asset'))->searchable(),
-                Tables\Columns\TextColumn::make('user.full_name')->label(__('User'))->searchable(),
+                Tables\Columns\TextColumn::make('user.display_name')
+                    ->label(__('User'))
+                    ->searchable(query: fn ($query, string $search) => $query
+                        ->whereHas('user', fn ($q) => $q
+                            ->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('full_name_ar', 'like', "%{$search}%"))),
                 Tables\Columns\TextColumn::make('assignmentStatus.code')
                     ->label(__('Status'))
                     ->badge()
                     ->formatStateUsing(fn ($state, $record) => $record->assignmentStatus?->getTranslatedName())
                     ->color(fn ($record) => $record->assignmentStatus?->getColour() ?? 'gray'),
-                Tables\Columns\TextColumn::make('assignedBy.full_name')->label(__('Performed By')),
+                Tables\Columns\TextColumn::make('assignedBy.display_name')->label(__('Performed By')),
                 Tables\Columns\TextColumn::make('checked_out_at')->label(__('Out'))->dateTime()->sortable(),
                 Tables\Columns\TextColumn::make('checked_in_at')->label(__('In'))->dateTime()->sortable(),
                 Tables\Columns\TextColumn::make('conditionOut.code')
@@ -182,7 +188,9 @@ class TransactionResource extends Resource
                     ->options(static::typeOptions()),
                 Tables\Filters\SelectFilter::make('user_id')
                     ->label(__('Users'))
-                    ->relationship('user', 'full_name'),
+                    ->relationship('user', 'full_name')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->display_name)
+                    ->searchable(),
                 Tables\Filters\SelectFilter::make('assignment_status_id')
                     ->label(__('Assignment Status'))
                     ->options(fn () => static::lookupOptions(Status::class, fn ($q) => $q->where('scope', Status::SCOPE_ASSIGNMENT))),
