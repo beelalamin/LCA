@@ -6,11 +6,11 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\Asset;
-use App\Models\Assignment;
 use App\Models\MaintenanceLog;
+use App\Models\Transaction;
 use App\Observers\AssetObserver;
-use App\Observers\AssignmentObserver;
 use App\Observers\MaintenanceLogObserver;
+use App\Observers\TransactionObserver;
 use Illuminate\Support\Facades\URL;
 use Spatie\Permission\Models\Role;
 
@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Asset::observe(AssetObserver::class);
-        Assignment::observe(AssignmentObserver::class);
+        Transaction::observe(TransactionObserver::class);
         MaintenanceLog::observe(MaintenanceLogObserver::class);
 
         Role::saving(function (Role $role) {

@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\AssetReturnReason;
 use App\Models\Lookups\CriticalityLevel;
@@ -11,7 +10,6 @@ use App\Models\Lookups\DisposalMethod;
 use App\Models\Lookups\DisposalReason;
 use App\Models\Lookups\EmploymentType;
 use App\Models\Lookups\JobTitle;
-use App\Models\Lookups\MaintenanceStatus;
 use App\Models\Lookups\MaintenanceType;
 use App\Models\Lookups\Manufacturer;
 use App\Models\Lookups\OfficeLocation;
@@ -19,7 +17,6 @@ use App\Models\Lookups\OwnershipType;
 use App\Models\Lookups\Status;
 use App\Models\Lookups\Supplier;
 use App\Models\Lookups\WarrantyProvider;
-use App\Models\Lookups\WarrantyStatus;
 use Illuminate\Database\Seeder;
 
 class LookupsSeeder extends Seeder
@@ -38,12 +35,7 @@ class LookupsSeeder extends Seeder
             ['code' => 'lost',       'name' => ['en' => 'Lost',       'ar' => 'مفقود']],
         ];
 
-        foreach ($assetStatuses as $i => $row) {
-            Status::firstOrCreate(
-                ['code' => $row['code']],
-                array_merge($row, ['scope' => 'asset', 'sort_order' => $i * 10])
-            );
-        }
+        $this->seedStatuses(Status::SCOPE_ASSET, $assetStatuses);
 
         $userStatuses = [
             ['code' => 'active',     'name' => ['en' => 'Active',     'ar' => 'نشط']],
@@ -52,12 +44,29 @@ class LookupsSeeder extends Seeder
             ['code' => 'terminated', 'name' => ['en' => 'Terminated', 'ar' => 'منتهي الخدمة']],
         ];
 
-        foreach ($userStatuses as $i => $row) {
-            Status::firstOrCreate(
-                ['code' => $row['code']],
-                array_merge($row, ['scope' => 'user', 'sort_order' => $i * 10])
-            );
-        }
+        $this->seedStatuses(Status::SCOPE_USER, $userStatuses);
+
+        $this->seedStatuses(Status::SCOPE_WARRANTY, [
+            ['code' => 'under_warranty', 'name' => ['en' => 'Under Warranty', 'ar' => 'تحت الضمان']],
+            ['code' => 'expired',        'name' => ['en' => 'Expired',        'ar' => 'منتهي الضمان']],
+            ['code' => 'extended',       'name' => ['en' => 'Extended',       'ar' => 'ضمان ممدد']],
+            ['code' => 'none',           'name' => ['en' => 'No Warranty',    'ar' => 'بدون ضمان']],
+        ]);
+
+        $this->seedStatuses(Status::SCOPE_ASSIGNMENT, [
+            ['code' => 'available',      'name' => ['en' => 'Available',      'ar' => 'متاح']],
+            ['code' => 'assigned',       'name' => ['en' => 'Assigned',       'ar' => 'مكلف']],
+            ['code' => 'pending_return', 'name' => ['en' => 'Pending Return', 'ar' => 'قيد الإرجاع']],
+            ['code' => 'returned',       'name' => ['en' => 'Returned',       'ar' => 'تم الإرجاع']],
+        ]);
+
+        $this->seedStatuses(Status::SCOPE_MAINTENANCE, [
+            ['code' => 'scheduled',   'name' => ['en' => 'Scheduled',   'ar' => 'مجدول']],
+            ['code' => 'in_progress', 'name' => ['en' => 'In Progress', 'ar' => 'قيد التنفيذ']],
+            ['code' => 'completed',   'name' => ['en' => 'Completed',   'ar' => 'مكتمل']],
+            ['code' => 'cancelled',   'name' => ['en' => 'Cancelled',   'ar' => 'ملغي']],
+            ['code' => 'overdue',     'name' => ['en' => 'Overdue',     'ar' => 'متأخر']],
+        ]);
 
         $this->seedSimple(AssetCondition::class, [
             ['excellent', 'Excellent', 'ممتاز'],
@@ -82,14 +91,6 @@ class LookupsSeeder extends Seeder
             ['personal', 'Personal',     'شخصي'],
         ]);
 
-        $this->seedSimple(MaintenanceStatus::class, [
-            ['scheduled',   'Scheduled',   'مجدول'],
-            ['in_progress', 'In Progress', 'قيد التنفيذ'],
-            ['completed',   'Completed',   'مكتمل'],
-            ['cancelled',   'Cancelled',   'ملغي'],
-            ['overdue',     'Overdue',     'متأخر'],
-        ]);
-
         $this->seedSimple(MaintenanceType::class, [
             ['repair',         'Repair',         'إصلاح'],
             ['upgrade',        'Upgrade',        'تطوير'],
@@ -112,20 +113,6 @@ class LookupsSeeder extends Seeder
             ['unrepairable', 'Unrepairable',    'غير قابل للإصلاح'],
             ['lost_stolen',  'Lost / Stolen',   'مفقود أو مسروق'],
             ['surplus',      'Surplus',         'فائض عن الحاجة'],
-        ]);
-
-        $this->seedSimple(WarrantyStatus::class, [
-            ['under_warranty', 'Under Warranty', 'تحت الضمان'],
-            ['expired',        'Expired',         'منتهي الضمان'],
-            ['extended',       'Extended',        'ضمان ممدد'],
-            ['none',           'No Warranty',     'بدون ضمان'],
-        ]);
-
-        $this->seedSimple(AssetAssignmentStatus::class, [
-            ['available',       'Available',       'متاح'],
-            ['assigned',        'Assigned',        'مكلف'],
-            ['pending_return',  'Pending Return',  'قيد الإرجاع'],
-            ['returned',        'Returned',        'تم الإرجاع'],
         ]);
 
         $this->seedSimple(AssetReturnReason::class, [
@@ -205,6 +192,21 @@ class LookupsSeeder extends Seeder
                     'sort_order' => $i * 10,
                     'is_active' => true,
                 ]
+            );
+        }
+    }
+
+    /** @param array<int, array{code: string, name: array{en: string, ar: string}}> $rows */
+    protected function seedStatuses(string $scope, array $rows): void
+    {
+        foreach ($rows as $i => $row) {
+            Status::firstOrCreate(
+                ['scope' => $scope, 'code' => $row['code']],
+                [
+                    'name' => $row['name'],
+                    'sort_order' => $i * 10,
+                    'is_active' => true,
+                ],
             );
         }
     }

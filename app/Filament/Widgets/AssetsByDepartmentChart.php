@@ -2,11 +2,14 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\RtlAwareChart;
 use App\Models\Lookups\Department;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class AssetsByDepartmentChart extends ApexChartWidget
 {
+    use RtlAwareChart;
+
     protected static ?string $chartId = 'assetsByDepartmentChart';
 
     public function getHeading(): string
@@ -34,7 +37,7 @@ class AssetsByDepartmentChart extends ApexChartWidget
             $series[] = (int) ($counts[$r->id] ?? 0);
         }
 
-        return [
+        return $this->rtlAware([
             'chart' => [
                 'type' => 'bar',
                 'height' => 320,
@@ -70,6 +73,6 @@ class AssetsByDepartmentChart extends ApexChartWidget
                 'strokeDashArray' => 4,
             ],
             'tooltip' => ['theme' => 'light'],
-        ];
+        ]);
     }
 }

@@ -9,22 +9,38 @@ use Illuminate\Http\Response;
 
 class AssetLabelController extends Controller
 {
+    protected function labelSettings(): array
+    {
+        return [
+            'width' => (int) Setting::get('label_width', 144),
+            'height' => (int) Setting::get('label_height', 72),
+            'padding' => (int) Setting::get('label_padding', 5),
+            'print_type' => Setting::get('print_type', 'both'),
+        ];
+    }
+
     public function barcode(Asset $asset)
     {
+        $settings = $this->labelSettings();
+
         $pdf = Pdf::loadView('labels.asset', [
             'asset' => $asset,
             'type' => 'barcode',
-        ])->setPaper([0, 0, 144, 72], 'landscape');
+            'settings' => $settings,
+        ])->setPaper([0, 0, $settings['width'], $settings['height']], 'landscape');
 
         return $pdf->stream("{$asset->asset_tag}-barcode.pdf");
     }
 
     public function qrcode(Asset $asset)
     {
+        $settings = $this->labelSettings();
+
         $pdf = Pdf::loadView('labels.asset', [
             'asset' => $asset,
             'type' => 'qrcode',
-        ])->setPaper([0, 0, 144, 72], 'landscape');
+            'settings' => $settings,
+        ])->setPaper([0, 0, $settings['width'], $settings['height']], 'landscape');
 
         return $pdf->stream("{$asset->asset_tag}-qrcode.pdf");
     }

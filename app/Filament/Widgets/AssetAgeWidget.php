@@ -2,11 +2,14 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\RtlAwareChart;
 use App\Models\Asset;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class AssetAgeWidget extends ApexChartWidget
 {
+    use RtlAwareChart;
+
     protected static ?string $chartId = 'assetAgeChart';
 
     protected static ?int $sort = 2;
@@ -42,7 +45,7 @@ class AssetAgeWidget extends ApexChartWidget
         ];
         $series = [$new, $recent, $aging, $veryOld, $disposed];
 
-        return [
+        return $this->rtlAware([
             'chart' => [
                 'type' => 'bar',
                 'height' => 320,
@@ -78,6 +81,6 @@ class AssetAgeWidget extends ApexChartWidget
                 'strokeDashArray' => 4,
             ],
             'tooltip' => ['theme' => 'light'],
-        ];
+        ]);
     }
 }

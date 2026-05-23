@@ -343,5 +343,51 @@
     "To": "إلى",
     "Range: :preset": "النطاق: :preset",
     "From: :date": "من: :date",
-    "To: :date": "إلى: :date"
+    "To: :date": "إلى: :date",
+
+    "Inventory": "المخزون",
+    "People": "الموظفون",
+    "Locations": "المواقع",
+    "Health": "الحالة",
+    "Lifecycle": "دورة الحياة",
+    "Activity": "النشاط",
+    "Top 10 Users": "أعلى 10 مستخدمين",
+
+    "Alerts & Actions": "التنبيهات والإجراءات",
+    "Urgent": "عاجل",
+    "Total flagged": "إجمالي المُبلَّغ عنه",
+    "Total": "الإجمالي",
+    "Action required": "إجراء مطلوب",
+    "Watch": "للمراقبة",
+    "Review": "للمراجعة",
+    "All clear": "خالٍ من التنبيهات",
+
+    "Warranty Expiring": "ضمان قارب على الانتهاء",
+    "Out of Warranty": "خارج الضمان",
+    "Maintenance Due": "صيانة مستحقة",
+    "Maintenance Overdue": "صيانة متأخرة",
+    "Long-overdue Returns": "إرجاعات متأخرة جداً",
+    "Idle Assets": "أصول خاملة",
+    "Critical in Poor Condition": "حرجة في حالة سيئة",
+    "Next 30 days": "خلال 30 يوماً",
+    "Warranty has lapsed": "انتهى الضمان",
+    "Past scheduled date": "بعد التاريخ المجدول",
+    "Checked out > 1 year": "صُرفت منذ أكثر من سنة",
+    "Available, unused 90d+": "متاح، غير مستخدم 90 يوماً+",
+    "High criticality, fair/poor": "أهمية عالية وحالة سيئة/متوسطة",
+
+    "All recorded assets": "جميع الأصول المسجلة",
+    "Active employees": "الموظفون النشطون",
+    "Current checkouts": "الصرفيات الحالية",
+    "Holding no assets": "بلا أصول مخصصة",
+
+    "Asset Age & Lifecycle": "عمر الأصل ودورة الحياة",
+    "Assets": "الأصول",
+    "Assets by Condition": "الأصول حسب الحالة",
+    "New (< 1y)": "جديد (أقل من سنة)",
+    "Recent (1-3y)": "حديث (1–3 سنوات)",
+    "Aging (3-6y)": "متقادم (3–6 سنوات)",
+    "Very Old (pre-2020)": "قديم جداً (قبل 2020)",
+
+    "When": "متى"
 }

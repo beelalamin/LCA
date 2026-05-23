@@ -2,11 +2,14 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\RtlAwareChart;
 use App\Models\Category;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class AssetsByCategoryChart extends ApexChartWidget
 {
+    use RtlAwareChart;
+
     protected static ?string $chartId = 'assetsByCategoryChart';
 
     public function getHeading(): string
@@ -34,7 +37,7 @@ class AssetsByCategoryChart extends ApexChartWidget
             $series[] = (int) $rest->sum('assets_count');
         }
 
-        return [
+        return $this->rtlAware([
             'chart' => [
                 'type' => 'donut',
                 'height' => 320,
@@ -86,6 +89,6 @@ class AssetsByCategoryChart extends ApexChartWidget
             'tooltip' => [
                 'theme' => 'light',
             ],
-        ];
+        ]);
     }
 }

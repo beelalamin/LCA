@@ -9,7 +9,6 @@ return new class extends Migration
     public function up(): void
     {
         $simple = [
-            'statuses',
             'manufacturers',
             'suppliers',
             'departments',
@@ -17,13 +16,10 @@ return new class extends Migration
             'employment_types',
             'office_locations',
             'asset_conditions',
-            'warranty_statuses',
             'ownership_types',
             'criticality_levels',
-            'maintenance_statuses',
             'disposal_methods',
             'warranty_providers',
-            'asset_assignment_statuses',
             'asset_return_reasons',
             'maintenance_types',
             'disposal_reasons',
@@ -34,20 +30,31 @@ return new class extends Migration
                 continue;
             }
 
-            Schema::create($table, function (Blueprint $t) use ($table) {
+            Schema::create($table, function (Blueprint $t) {
                 $t->uuid('id')->primary();
                 $t->string('code')->unique();
                 $t->json('name');
                 $t->json('description')->nullable();
                 $t->integer('sort_order')->default(0);
                 $t->boolean('is_active')->default(true);
-
-                if ($table === 'statuses') {
-                    $t->string('scope')->default('asset');
-                    $t->string('color')->nullable();
-                }
-
                 $t->timestamps();
+            });
+        }
+
+        if (! Schema::hasTable('statuses')) {
+            Schema::create('statuses', function (Blueprint $t) {
+                $t->uuid('id')->primary();
+                $t->string('scope')->default('asset');
+                $t->string('code');
+                $t->json('name');
+                $t->json('description')->nullable();
+                $t->string('color')->nullable();
+                $t->integer('sort_order')->default(0);
+                $t->boolean('is_active')->default(true);
+                $t->timestamps();
+
+                $t->unique(['scope', 'code']);
+                $t->index('scope');
             });
         }
 
@@ -72,13 +79,10 @@ return new class extends Migration
             'disposal_reasons',
             'maintenance_types',
             'asset_return_reasons',
-            'asset_assignment_statuses',
             'warranty_providers',
             'disposal_methods',
-            'maintenance_statuses',
             'criticality_levels',
             'ownership_types',
-            'warranty_statuses',
             'asset_conditions',
             'office_locations',
             'employment_types',

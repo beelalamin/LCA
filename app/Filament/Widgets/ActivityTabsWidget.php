@@ -30,7 +30,7 @@ class ActivityTabsWidget extends BaseWidget
     {
         return [
             'top_staff' => [
-                'label' => __('Top 10 Staff'),
+                'label' => __('Top 10 Users'),
                 'icon' => 'heroicon-o-trophy',
             ],
             'recent_activity' => [
@@ -52,15 +52,15 @@ class ActivityTabsWidget extends BaseWidget
     protected function topStaffTable(Table $table): Table
     {
         return $table
+            ->heading(null)
             ->query(
                 User::query()
                     ->whereNotNull('employee_number')
                     ->select('users.*')
                     ->selectSub(
-                        DB::table('assignments')
+                        DB::table('assets')
                             ->selectRaw('count(*)')
-                            ->whereColumn('assignments.user_id', 'users.id')
-                            ->where('is_active', true),
+                            ->whereColumn('assets.assigned_to_user_id', 'users.id'),
                         'active_assignments_count'
                     )
                     ->selectSub(
@@ -74,7 +74,7 @@ class ActivityTabsWidget extends BaseWidget
             )
             ->columns([
                 Tables\Columns\TextColumn::make('full_name')
-                    ->label(__('Staff'))
+                    ->label(__('User'))
                     ->weight('semibold'),
                 Tables\Columns\TextColumn::make('department.code')
                     ->label(__('Department'))
@@ -97,6 +97,7 @@ class ActivityTabsWidget extends BaseWidget
     protected function recentActivityTable(Table $table): Table
     {
         return $table
+            ->heading(null)
             ->query(
                 AuditLog::query()
                     ->with(['asset', 'performedBy'])

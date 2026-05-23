@@ -94,14 +94,14 @@ class User extends Authenticatable implements HasName, FilamentUser
         return $this->belongsTo(Status::class, 'status_id');
     }
 
-    public function assignments(): HasMany
+    public function transactions(): HasMany
     {
-        return $this->hasMany(Assignment::class, 'user_id');
+        return $this->hasMany(Transaction::class, 'user_id');
     }
 
     public function activeAssignments(): HasMany
     {
-        return $this->hasMany(Assignment::class, 'user_id')->where('is_active', true);
+        return $this->hasMany(Asset::class, 'assigned_to_user_id');
     }
 
     public function currentAssets(): HasMany
@@ -114,9 +114,9 @@ class User extends Authenticatable implements HasName, FilamentUser
         return $this->hasMany(Asset::class, 'created_by');
     }
 
-    public function madeAssignments(): HasMany
+    public function performedTransactions(): HasMany
     {
-        return $this->hasMany(Assignment::class, 'assigned_by');
+        return $this->hasMany(Transaction::class, 'assigned_by');
     }
 
     public function maintenanceLogs(): HasMany

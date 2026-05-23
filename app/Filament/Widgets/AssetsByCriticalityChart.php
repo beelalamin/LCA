@@ -2,11 +2,14 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\RtlAwareChart;
 use App\Models\Lookups\CriticalityLevel;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class AssetsByCriticalityChart extends ApexChartWidget
 {
+    use RtlAwareChart;
+
     protected static ?string $chartId = 'assetsByCriticalityChart';
 
     public function getHeading(): string
@@ -43,7 +46,7 @@ class AssetsByCriticalityChart extends ApexChartWidget
             $colors[] = $colorMap[$r->code] ?? '#94A3B8';
         }
 
-        return [
+        return $this->rtlAware([
             'chart' => [
                 'type' => 'bar',
                 'height' => 320,
@@ -78,6 +81,6 @@ class AssetsByCriticalityChart extends ApexChartWidget
                 'strokeDashArray' => 4,
             ],
             'tooltip' => ['theme' => 'light'],
-        ];
+        ]);
     }
 }

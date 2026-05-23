@@ -21,10 +21,9 @@ class TopStaffByAssignmentsWidget extends BaseWidget
                     ->whereNotNull('employee_number')
                     ->select('users.*')
                     ->selectSub(
-                        DB::table('assignments')
+                        DB::table('assets')
                             ->selectRaw('count(*)')
-                            ->whereColumn('assignments.user_id', 'users.id')
-                            ->where('is_active', true),
+                            ->whereColumn('assets.assigned_to_user_id', 'users.id'),
                         'active_assignments_count'
                     )
                     ->selectSub(

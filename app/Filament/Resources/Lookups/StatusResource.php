@@ -23,23 +23,30 @@ class StatusResource extends Resource
     public static function getPluralModelLabel(): string { return __('Statuses'); }
     public static function getNavigationLabel(): string { return __('Statuses'); }
 
+    protected static function scopeOptions(): array
+    {
+        return [
+            Status::SCOPE_ASSET => __('Asset'),
+            Status::SCOPE_USER => __('User'),
+            Status::SCOPE_WARRANTY => __('Warranty'),
+            Status::SCOPE_ASSIGNMENT => __('Assignment'),
+            Status::SCOPE_MAINTENANCE => __('Maintenance'),
+        ];
+    }
+
     public static function form(Form $form): Form
     {
         $schema = static::formSchema();
 
-        array_splice($schema, 1, 0, [
-            Forms\Components\Select::make('scope')
-                ->label(__('Scope'))
-                ->options([
-                    'asset' => __('Asset'),
-                    'user' => __('User'),
-                ])
-                ->default('asset')
-                ->required(),
-            Forms\Components\TextInput::make('color')
-                ->label(__('Color'))
-                ->placeholder('success | warning | danger | info | gray'),
-        ]);
+        array_unshift($schema, Forms\Components\Select::make('scope')
+            ->label(__('Scope'))
+            ->options(static::scopeOptions())
+            ->default(Status::SCOPE_ASSET)
+            ->required());
+
+        $schema[] = Forms\Components\TextInput::make('color')
+            ->label(__('Color'))
+            ->placeholder('success | warning | danger | info | gray');
 
         return $form->schema($schema);
     }
@@ -48,22 +55,23 @@ class StatusResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('code')->label(__('Code'))->searchable(),
+                Tables\Columns\TextColumn::make('scope')
+                    ->label(__('Scope'))
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => static::scopeOptions()[$state] ?? $state)
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->label(__('Name'))
                     ->searchable()
                     ->formatStateUsing(fn ($state, $record) => $record->getTranslatedName()),
-                Tables\Columns\TextColumn::make('scope')->label(__('Scope'))->badge(),
-                Tables\Columns\TextColumn::make('sort_order')->label(__('Sort'))->sortable(),
-                Tables\Columns\IconColumn::make('is_active')->label(__('Active'))->boolean(),
+                Tables\Columns\TextColumn::make('color')
+                    ->label(__('Color'))
+                    ->badge()
+                    ->color(fn ($record) => $record->getColour()),
             ])
-            ->defaultSort('sort_order')
+            ->defaultSort('scope')
             ->filters([
-                Tables\Filters\SelectFilter::make('scope')->options([
-                    'asset' => __('Asset'),
-                    'user' => __('User'),
-                ]),
-                Tables\Filters\TernaryFilter::make('is_active')->label(__('Active')),
+                Tables\Filters\SelectFilter::make('scope')->options(static::scopeOptions()),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([

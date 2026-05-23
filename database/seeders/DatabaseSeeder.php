@@ -3,9 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Asset;
-use App\Models\Assignment;
 use App\Models\Category;
-use App\Models\Lookups\AssetAssignmentStatus;
+use App\Models\Transaction;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\Department;
 use App\Models\Lookups\Manufacturer;
@@ -104,7 +103,7 @@ class DatabaseSeeder extends Seeder
     /** @param array<string, User> $staff */
     protected function seedAssetsFromCsv(array $staff, string $adminId): void
     {
-        $csvPath = base_path('static/Updated_Asset_Management.csv');
+        $csvPath = base_path('Updated_Asset_Management.csv');
         if (! is_file($csvPath)) {
             $this->command->warn("CSV file not found at {$csvPath} — skipping asset import.");
             return;
@@ -121,8 +120,8 @@ class DatabaseSeeder extends Seeder
         $goodCondId    = AssetCondition::where('code', 'good')->value('id');
         $damagedCondId = AssetCondition::where('code', 'damaged')->value('id');
 
-        $availableAssignmentId = AssetAssignmentStatus::where('code', 'available')->value('id');
-        $assignedAssignmentId  = AssetAssignmentStatus::where('code', 'assigned')->value('id');
+        $availableAssignmentId = Status::forAssignment()->where('code', 'available')->value('id');
+        $assignedAssignmentId  = Status::forAssignment()->where('code', 'assigned')->value('id');
 
         $file = new \SplFileObject($csvPath, 'r');
         $file->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY | \SplFileObject::READ_AHEAD);
@@ -214,14 +213,14 @@ class DatabaseSeeder extends Seeder
             ]);
 
             if ($assignedUser) {
-                Assignment::create([
+                Transaction::create([
                     'asset_id'             => $asset->id,
+                    'type'                 => Transaction::TYPE_CHECK_OUT,
                     'user_id'              => $assignedUser->id,
                     'assigned_by'          => $adminId,
                     'checked_out_at'       => Carbon::now()->subMonths(2),
                     'condition_out_id'     => $condId,
                     'assignment_status_id' => $assignedAssignmentId,
-                    'is_active'            => true,
                     'notes'                => $notes,
                 ]);
             }

@@ -15,7 +15,7 @@ class RolesPermissionsSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $resources = [
-            'asset', 'assignment', 'category', 'user',
+            'asset', 'transaction', 'category', 'user',
             'audit::log', 'maintenance::log',
             'lookup::status', 'lookup::manufacturer', 'lookup::model',
             'lookup::supplier', 'lookup::department', 'lookup::job::title',
@@ -53,7 +53,7 @@ class RolesPermissionsSeeder extends Seeder
             'page_Profile',
             'page_BulkImportPage',
             'page_MyAssets',
-            'page_MyAssignmentsHistory',
+            'page_MyTransactionsHistory',
         ];
 
         $allPermissions = array_merge($allPermissions, $pagePermissions);
@@ -81,9 +81,9 @@ class RolesPermissionsSeeder extends Seeder
 
         $userPermissions = [
             'view_any_asset', 'view_asset',
-            'view_any_assignment', 'view_assignment',
+            'view_any_transaction', 'view_transaction',
             'page_Dashboard', 'page_Profile',
-            'page_MyAssets', 'page_MyAssignmentsHistory',
+            'page_MyAssets', 'page_MyTransactionsHistory',
         ];
 
         $user->syncPermissions(Permission::whereIn('name', $userPermissions)->get());

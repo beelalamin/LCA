@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Assignment;
+use App\Models\Transaction;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -10,7 +10,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
-class MyAssignmentsHistory extends Page implements HasTable
+class MyTransactionsHistory extends Page implements HasTable
 {
     use InteractsWithTable;
 
@@ -20,12 +20,12 @@ class MyAssignmentsHistory extends Page implements HasTable
 
     public static function getNavigationLabel(): string
     {
-        return __('My Assignments History');
+        return __('My Transactions History');
     }
 
     public function getTitle(): string
     {
-        return __('My Assignments History');
+        return __('My Transactions History');
     }
 
     public static function getNavigationGroup(): ?string
@@ -43,7 +43,16 @@ class MyAssignmentsHistory extends Page implements HasTable
         return $table
             ->query(static::getTableQuery())
             ->columns([
-                Tables\Columns\TextColumn::make('assignment_number')->label(__('Assignment #')),
+                Tables\Columns\TextColumn::make('transaction_number')->label(__('Transaction #')),
+                Tables\Columns\TextColumn::make('type')
+                    ->label(__('Type'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        Transaction::TYPE_REGISTERED => 'info',
+                        Transaction::TYPE_CHECK_OUT => 'warning',
+                        Transaction::TYPE_CHECK_IN => 'success',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('asset.asset_tag')->label(__('Asset')),
                 Tables\Columns\TextColumn::make('checked_out_at')->label(__('Out'))->dateTime(),
                 Tables\Columns\TextColumn::make('checked_in_at')->label(__('In'))->dateTime(),
@@ -51,7 +60,6 @@ class MyAssignmentsHistory extends Page implements HasTable
                     ->label(__('Status'))
                     ->badge()
                     ->formatStateUsing(fn ($state, $record) => $record->assignmentStatus?->getTranslatedName()),
-                Tables\Columns\IconColumn::make('is_active')->label(__('Active'))->boolean(),
             ])
             ->defaultSort('checked_out_at', 'desc');
     }
@@ -60,7 +68,7 @@ class MyAssignmentsHistory extends Page implements HasTable
     {
         $userId = auth()->id();
 
-        return Assignment::query()
+        return Transaction::query()
             ->with(['asset', 'assignmentStatus'])
             ->when($userId, fn ($q) => $q->where('user_id', $userId))
             ->when(! $userId, fn ($q) => $q->whereRaw('1 = 0'));

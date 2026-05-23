@@ -42,6 +42,21 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('parent_id')
+                    ->label(__('Parent Category'))
+                    ->placeholder(__('— (Top level)'))
+                    ->options(function (?Category $record) {
+                        return Category::query()
+                            ->whereNull('parent_id')
+                            ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                            ->get()
+                            ->mapWithKeys(fn ($c) => [$c->id => $c->getTranslation('name', app()->getLocale())]);
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->helperText(__('Leave empty to create a top-level category.'))
+                    ->columnSpanFull(),
                 Forms\Components\Tabs::make('Translations')
                     ->tabs([
                         Forms\Components\Tabs\Tab::make(__('English'))
@@ -62,11 +77,16 @@ class CategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn ($record) => static::getUrl('view', ['record' => $record]))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label(__('Category'))
                     ->searchable()
                     ->formatStateUsing(fn ($state, $record) => $record->getTranslation('name', app()->getLocale())),
+                Tables\Columns\TextColumn::make('parent.name')
+                    ->label(__('Parent'))
+                    ->placeholder('—')
+                    ->formatStateUsing(fn ($state, $record) => $record->parent?->getTranslation('name', app()->getLocale())),
                 Tables\Columns\TextColumn::make('children_count')
                     ->label(__('SubCategories'))
                     ->counts('children'),
@@ -74,10 +94,33 @@ class CategoryResource extends Resource
                     ->label(__('Assets Count'))
                     ->counts('assets'),
             ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('parent_id')
+                    ->label(__('Parent'))
+                    ->options(fn () => Category::query()
+                        ->whereNull('parent_id')
+                        ->get()
+                        ->mapWithKeys(fn ($c) => [$c->id => $c->getTranslation('name', app()->getLocale())])),
+                Tables\Filters\TernaryFilter::make('top_level_only')
+                    ->label(__('Top level only'))
+                    ->placeholder(__('All'))
+                    ->trueLabel(__('Top level only'))
+                    ->falseLabel(__('Subcategories only'))
+                    ->queries(
+                        true: fn ($query) => $query->whereNull('parent_id'),
+                        false: fn ($query) => $query->whereNotNull('parent_id'),
+                        blank: fn ($query) => $query,
+                    ),
+            ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->disabled(fn ($record) => ($record->assets_count ?? 0) > 0 || ($record->children_count ?? 0) > 0)
+                        ->tooltip(fn ($record) => (($record->assets_count ?? 0) > 0 || ($record->children_count ?? 0) > 0)
+                            ? __('Cannot delete: category has assets or subcategories')
+                            : null),
                 ])->icon('heroicon-m-ellipsis-vertical'),
             ])
             ->bulkActions([
@@ -87,17 +130,26 @@ class CategoryResource extends Resource
             ]);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            CategoryResource\RelationManagers\ChildrenRelationManager::class,
+            CategoryResource\RelationManagers\AssetsRelationManager::class,
+        ];
+    }
+
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageCategories::route('/'),
+            'index' => Pages\ListCategories::route('/'),
+            'view' => Pages\ViewCategory::route('/{record}'),
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereNull('parent_id')
+            ->with('parent')
             ->withCount(['assets', 'children']);
     }
 }

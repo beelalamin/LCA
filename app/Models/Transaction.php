@@ -2,22 +2,31 @@
 
 namespace App\Models;
 
-use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\AssetReturnReason;
 use App\Models\Lookups\Department;
-use App\Models\Lookups\MaintenanceStatus;
 use App\Models\Lookups\MaintenanceType;
 use App\Models\Lookups\OfficeLocation;
+use App\Models\Lookups\Status;
 use App\Models\Lookups\WarrantyProvider;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Translatable\HasTranslations;
 
-class Assignment extends Model
+class Transaction extends Model
 {
     use HasUuids, HasTranslations;
+
+    public const TYPE_REGISTERED = 'registered';
+    public const TYPE_CHECK_OUT = 'check_out';
+    public const TYPE_CHECK_IN = 'check_in';
+
+    public static array $types = [
+        self::TYPE_REGISTERED,
+        self::TYPE_CHECK_OUT,
+        self::TYPE_CHECK_IN,
+    ];
 
     protected $guarded = [];
 
@@ -66,7 +75,7 @@ class Assignment extends Model
 
     public function assignmentStatus(): BelongsTo
     {
-        return $this->belongsTo(AssetAssignmentStatus::class, 'assignment_status_id');
+        return $this->belongsTo(Status::class, 'assignment_status_id');
     }
 
     public function returnReason(): BelongsTo
@@ -76,7 +85,7 @@ class Assignment extends Model
 
     public function maintenanceStatus(): BelongsTo
     {
-        return $this->belongsTo(MaintenanceStatus::class, 'maintenance_status_id');
+        return $this->belongsTo(Status::class, 'maintenance_status_id');
     }
 
     public function maintenanceType(): BelongsTo

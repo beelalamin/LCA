@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('invoice_number')->nullable()->after('supplier_id');
             $table->string('purchase_order_number')->nullable()->after('invoice_number');
             $table->foreignUuid('warranty_status_id')->nullable()->after('purchase_order_number')
-                ->constrained('warranty_statuses')->nullOnDelete();
+                ->constrained('statuses')->nullOnDelete();
             $table->foreignUuid('warranty_provider_id')->nullable()->after('warranty_status_id')
                 ->constrained('warranty_providers')->nullOnDelete();
             $table->string('image_path')->nullable()->after('warranty_provider_id');
@@ -43,7 +43,7 @@ return new class extends Migration
             $table->foreignUuid('assigned_to_user_id')->nullable()->after('next_maintenance_date')
                 ->constrained('users')->nullOnDelete();
             $table->foreignUuid('assignment_status_id')->nullable()->after('assigned_to_user_id')
-                ->constrained('asset_assignment_statuses')->nullOnDelete();
+                ->constrained('statuses')->nullOnDelete();
             $table->date('assigned_date')->nullable()->after('assignment_status_id');
             $table->date('return_date')->nullable()->after('assigned_date');
             $table->foreignUuid('return_reason_id')->nullable()->after('return_date')
@@ -51,7 +51,7 @@ return new class extends Migration
             $table->foreignUuid('ownership_type_id')->nullable()->after('return_reason_id')
                 ->constrained('ownership_types')->nullOnDelete();
             $table->foreignUuid('maintenance_status_id')->nullable()->after('ownership_type_id')
-                ->constrained('maintenance_statuses')->nullOnDelete();
+                ->constrained('statuses')->nullOnDelete();
             $table->foreignUuid('maintenance_type_id')->nullable()->after('maintenance_status_id')
                 ->constrained('maintenance_types')->nullOnDelete();
             $table->date('disposal_date')->nullable()->after('maintenance_type_id');

@@ -47,7 +47,12 @@ class CategoryPolicy
      */
     public function delete(User $user, Category $category): bool
     {
-        return $user->can('delete_category');
+        if (! $user->can('delete_category')) {
+            return false;
+        }
+
+        return $category->assets()->doesntExist()
+            && $category->children()->doesntExist();
     }
 
     /**

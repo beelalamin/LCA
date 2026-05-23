@@ -33,10 +33,12 @@
 @endphp
 
 <x-filament-widgets::widget>
-    <x-filament::section>
+    <x-filament::section
+        class="ring-1 ring-amber-300/70 dark:ring-amber-500/30 hover:ring-amber-400/80 dark:hover:ring-amber-400/50 transition-shadow"
+    >
         <x-slot name="heading">
             <div class="flex items-center gap-2">
-                <x-filament::icon icon="heroicon-o-bell-alert" class="w-5 h-5 text-rose-500" />
+                <x-filament::icon icon="heroicon-o-bell-alert" class="w-5 h-5 text-amber-500" />
                 <span>{{ __('Alerts & Actions') }}</span>
             </div>
         </x-slot>

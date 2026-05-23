@@ -4,9 +4,8 @@ namespace App\Filament\Resources\AssetResource\Pages;
 
 use App\Filament\Resources\AssetResource;
 use App\Models\Asset;
-use App\Models\Assignment;
+use App\Models\Transaction;
 use App\Models\User;
-use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\AssetReturnReason;
 use App\Models\Lookups\Status;
@@ -54,17 +53,17 @@ class ViewAsset extends ViewRecord
                         Forms\Components\Textarea::make('notes_en')->label(__('Notes (EN)')),
                     ])
                     ->action(function (Asset $record, array $data) {
-                        $assignedStatusId = AssetAssignmentStatus::where('code', 'assigned')->value('id');
+                        $assignedStatusId = Status::forAssignment()->where('code', 'assigned')->value('id');
 
-                        Assignment::create([
+                        Transaction::create([
                             'asset_id' => $record->id,
+                            'type' => Transaction::TYPE_CHECK_OUT,
                             'user_id' => $data['user_id'],
                             'assigned_by' => auth()->id(),
                             'condition_out_id' => $data['condition_out_id'],
                             'checked_out_at' => now(),
                             'assignment_status_id' => $assignedStatusId,
                             'notes' => ['en' => $data['notes_en'] ?? null],
-                            'is_active' => true,
                         ]);
 
                         $this->updateStatus($record, 'assigned');
@@ -88,19 +87,22 @@ class ViewAsset extends ViewRecord
                         Forms\Components\Textarea::make('notes_en')->label(__('Notes (EN)')),
                     ])
                     ->action(function (Asset $record, array $data) {
-                        $assignment = $record->activeAssignment;
-                        $returnedStatusId = AssetAssignmentStatus::where('code', 'returned')->value('id');
+                        $returnedStatusId = Status::forAssignment()->where('code', 'returned')->value('id');
+                        $openCheckOut = $record->activeAssignment;
 
-                        if ($assignment) {
-                            $assignment->update([
-                                'checked_in_at' => now(),
-                                'condition_in_id' => $data['condition_in_id'],
-                                'return_reason_id' => $data['return_reason_id'] ?? null,
-                                'assignment_status_id' => $returnedStatusId,
-                                'notes' => array_merge((array) $assignment->notes, ['en' => $data['notes_en'] ?? null]),
-                                'is_active' => false,
-                            ]);
-                        }
+                        Transaction::create([
+                            'asset_id' => $record->id,
+                            'type' => Transaction::TYPE_CHECK_IN,
+                            'user_id' => $openCheckOut?->user_id,
+                            'assigned_by' => auth()->id(),
+                            'condition_in_id' => $data['condition_in_id'],
+                            'return_reason_id' => $data['return_reason_id'] ?? null,
+                            'checked_in_at' => now(),
+                            'assignment_status_id' => $returnedStatusId,
+                            'notes' => ['en' => $data['notes_en'] ?? null],
+                        ]);
+
+                        $openCheckOut?->update(['checked_in_at' => now()]);
 
                         $this->updateStatus($record, 'available');
                     }),

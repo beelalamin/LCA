@@ -3,7 +3,6 @@
 namespace App\Imports;
 
 use App\Models\Asset;
-use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetModel;
 use App\Models\Lookups\Manufacturer;
 use App\Models\Lookups\OfficeLocation;
@@ -115,7 +114,7 @@ class AssetsImport implements ToModel, WithHeadingRow, WithValidation, SkipsEmpt
         $notesEn = trim((string) ($row['notes_english'] ?? $row['notes_en'] ?? ''));
         $notesAr = trim((string) ($row['notes_arabic'] ?? $row['notes_ar'] ?? ''));
 
-        $availableAssignmentStatusId = AssetAssignmentStatus::where('code', 'available')->value('id');
+        $availableAssignmentStatusId = Status::forAssignment()->where('code', 'available')->value('id');
 
         $this->importedCount++;
 

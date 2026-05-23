@@ -3,9 +3,8 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Asset;
-use App\Models\Assignment;
-use App\Models\Lookups\AssetAssignmentStatus;
-use App\Models\Lookups\WarrantyStatus;
+use App\Models\Lookups\Status;
+use App\Models\Transaction;
 use Filament\Widgets\Widget;
 
 class AssetAlertsWidget extends Widget
@@ -25,7 +24,7 @@ class AssetAlertsWidget extends Widget
 
         $warrantyExpiring = Asset::whereBetween('warranty_expiry', [$today, $in30])->count();
 
-        $expiredId = WarrantyStatus::where('code', 'expired')->value('id');
+        $expiredId = Status::forWarranty()->where('code', 'expired')->value('id');
         $outOfWarranty = Asset::query()
             ->where(function ($q) use ($expiredId, $today) {
                 $q->where('warranty_status_id', $expiredId)
@@ -36,12 +35,16 @@ class AssetAlertsWidget extends Widget
         $maintenanceOverdue = Asset::whereNotNull('next_maintenance_date')
             ->where('next_maintenance_date', '<', $today)->count();
 
-        $longOverdueReturns = Assignment::whereNull('checked_in_at')
-            ->where('checked_out_at', '<', $yearAgo)->count();
+        $longOverdueReturns = Transaction::where('type', Transaction::TYPE_CHECK_OUT)
+            ->whereNull('checked_in_at')
+            ->where('checked_out_at', '<', $yearAgo)
+            ->count();
 
-        $availableStatusId = AssetAssignmentStatus::where('code', 'available')->value('id');
+        $availableStatusId = Status::forAssignment()->where('code', 'available')->value('id');
         $idleAssets = Asset::where('assignment_status_id', $availableStatusId)
-            ->whereDoesntHave('assignments', fn ($q) => $q->where('checked_out_at', '>=', $ninetyDaysAgo))
+            ->whereDoesntHave('transactions', fn ($q) => $q
+                ->where('type', Transaction::TYPE_CHECK_OUT)
+                ->where('checked_out_at', '>=', $ninetyDaysAgo))
             ->count();
 
         $criticalPoor = Asset::query()

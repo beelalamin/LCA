@@ -1,4 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap');
+@import 'tailwindcss';
+
+@source '../../../views/filament/**/*.blade.php';
+@source '../../../views/livewire/**/*.blade.php';
+@source '../../../../app/Filament/**/*.php';
+@source '../../../../vendor/filament/**/*.blade.php';
+
+@custom-variant dark (&:is(.dark *));
 
 [dir="rtl"],
 [dir="rtl"] * {
@@ -90,6 +98,50 @@
 }
 .dark .fi-login-footer p {
     color: rgb(107 114 128);
+}
+
+/* ---- Sticky/frozen actions column on data tables.
+       Pins the trailing cell (which Filament fills with the ActionGroup)
+       to the inline-end edge so it stays visible during horizontal scroll. ---- */
+.fi-ta-content table > thead > tr > th:last-child,
+.fi-ta-content table > tbody > tr > td:last-child {
+    position: sticky;
+    inset-inline-end: 0;
+    z-index: 5;
+    background-color: rgb(255 255 255);
+    box-shadow: -8px 0 8px -6px rgb(0 0 0 / 0.06);
+}
+
+.dark .fi-ta-content table > thead > tr > th:last-child,
+.dark .fi-ta-content table > tbody > tr > td:last-child {
+    background-color: rgb(24 24 27); /* zinc-900 */
+}
+
+.fi-ta-content table > tbody > tr:hover > td:last-child {
+    background-color: rgb(249 250 251); /* gray-50 */
+}
+
+.dark .fi-ta-content table > tbody > tr:hover > td:last-child {
+    background-color: rgb(39 39 42); /* zinc-800 */
+}
+
+/* ---- Toggle: enforce track + knob sizing so the white knob stays inside.
+       Filament's compiled classes (`fi-fo-toggle`, `h-6 w-11` + knob `h-5 w-5`,
+       `border-2 border-transparent`) plus Tailwind v4's `translate-x-5` already
+       position the knob correctly — we only pin the box dimensions so layout
+       siblings (e.g. inline labels) can't squeeze the track. ---- */
+.fi-fo-toggle {
+    box-sizing: border-box;
+    width: 2.75rem !important;   /* w-11 */
+    height: 1.5rem !important;   /* h-6 */
+    flex: 0 0 2.75rem !important;
+}
+
+.fi-fo-toggle > span {
+    box-sizing: border-box;
+    width: 1.25rem !important;   /* w-5 */
+    height: 1.25rem !important;  /* h-5 */
+    flex-shrink: 0;
 }
 
 @media (min-width: 768px) {

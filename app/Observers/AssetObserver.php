@@ -3,8 +3,8 @@
 namespace App\Observers;
 
 use App\Models\Asset;
-use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\Status;
+use App\Models\Transaction;
 use App\Services\AssetService;
 use App\Services\AuditLogger;
 use App\Services\LabelGenerationService;
@@ -29,7 +29,7 @@ class AssetObserver
         }
 
         if (empty($asset->assignment_status_id)) {
-            $available = AssetAssignmentStatus::where('code', 'available')->first();
+            $available = Status::forAssignment()->where('code', 'available')->first();
             if ($available) {
                 $asset->assignment_status_id = $available->id;
             }
@@ -41,6 +41,17 @@ class AssetObserver
         app(LabelGenerationService::class)->generateBoth($asset);
 
         AuditLogger::log('REGISTERED', $asset, null, $asset->toArray());
+
+        if (! empty($asset->assigned_to_user_id)) {
+            Transaction::create([
+                'asset_id' => $asset->id,
+                'type' => Transaction::TYPE_REGISTERED,
+                'user_id' => $asset->assigned_to_user_id,
+                'assigned_by' => auth()->id() ?? $asset->created_by,
+                'assignment_status_id' => $asset->assignment_status_id,
+                'condition_out_id' => $asset->condition_id,
+            ]);
+        }
     }
 
     public function updated(Asset $asset): void

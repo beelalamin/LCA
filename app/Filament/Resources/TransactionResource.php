@@ -2,17 +2,16 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AssignmentResource\Pages;
+use App\Filament\Resources\TransactionResource\Pages;
 use App\Models\Asset;
-use App\Models\Assignment;
+use App\Models\Transaction;
 use App\Models\User;
-use App\Models\Lookups\AssetAssignmentStatus;
 use App\Models\Lookups\AssetCondition;
 use App\Models\Lookups\AssetReturnReason;
 use App\Models\Lookups\Department;
-use App\Models\Lookups\MaintenanceStatus;
 use App\Models\Lookups\MaintenanceType;
 use App\Models\Lookups\OfficeLocation;
+use App\Models\Lookups\Status;
 use App\Models\Lookups\WarrantyProvider;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -20,46 +19,64 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 
-class AssignmentResource extends Resource
+class TransactionResource extends Resource
 {
-    protected static ?string $model = Assignment::class;
+    protected static ?string $model = Transaction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+    protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
     protected static ?int $navigationSort = 2;
 
-    public static function getModelLabel(): string { return __('Assignment'); }
-    public static function getPluralModelLabel(): string { return __('Assignments'); }
-    public static function getNavigationLabel(): string { return __('Assignments'); }
+    public static function getModelLabel(): string { return __('Transaction'); }
+    public static function getPluralModelLabel(): string { return __('Transactions'); }
+    public static function getNavigationLabel(): string { return __('Transactions'); }
 
     public static function getNavigationGroup(): ?string
     {
         return __('Asset Management');
     }
 
-    protected static function lookupOptions(string $modelClass): array
+    protected static function lookupOptions(string $modelClass, ?callable $scope = null): array
     {
-        return $modelClass::query()
+        $query = $modelClass::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
-            ->orderBy('code')
-            ->get()
+            ->orderBy('code');
+
+        if ($scope) {
+            $scope($query);
+        }
+
+        return $query->get()
             ->mapWithKeys(fn ($r) => [$r->id => $r->getTranslatedName()])
             ->toArray();
+    }
+
+    protected static function typeOptions(): array
+    {
+        return [
+            Transaction::TYPE_REGISTERED => __('Registered'),
+            Transaction::TYPE_CHECK_OUT => __('Check Out'),
+            Transaction::TYPE_CHECK_IN => __('Check In'),
+        ];
     }
 
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Section::make(__('Assignment'))->columns(2)->schema([
-                Forms\Components\TextInput::make('assignment_number')
-                    ->label(__('Assignment Number'))
+            Forms\Components\Section::make(__('Transaction'))->columns(2)->schema([
+                Forms\Components\TextInput::make('transaction_number')
+                    ->label(__('Transaction Number'))
                     ->disabled()
                     ->dehydrated(false)
                     ->helperText(__('Auto-generated')),
+                Forms\Components\Select::make('type')
+                    ->label(__('Type'))
+                    ->options(static::typeOptions())
+                    ->required()
+                    ->default(Transaction::TYPE_CHECK_OUT),
                 Forms\Components\Select::make('assignment_status_id')
                     ->label(__('Assignment Status'))
-                    ->options(fn () => static::lookupOptions(AssetAssignmentStatus::class))
-                    ->required(),
+                    ->options(fn () => static::lookupOptions(Status::class, fn ($q) => $q->where('scope', Status::SCOPE_ASSIGNMENT))),
                 Forms\Components\Select::make('asset_id')
                     ->label(__('Asset'))
                     ->options(fn () => Asset::query()->orderBy('asset_tag')->limit(200)->get()
@@ -69,8 +86,7 @@ class AssignmentResource extends Resource
                 Forms\Components\Select::make('user_id')
                     ->label(__('User'))
                     ->options(fn () => User::where('is_active', true)->orderBy('full_name')->pluck('full_name', 'id'))
-                    ->searchable()
-                    ->required(),
+                    ->searchable(),
                 Forms\Components\Select::make('department_id')
                     ->label(__('Department (snapshot)'))
                     ->options(fn () => static::lookupOptions(Department::class)),
@@ -79,7 +95,6 @@ class AssignmentResource extends Resource
                     ->options(fn () => static::lookupOptions(OfficeLocation::class)),
                 Forms\Components\DateTimePicker::make('checked_out_at')->label(__('Checked Out At')),
                 Forms\Components\DateTimePicker::make('checked_in_at')->label(__('Checked In At')),
-                Forms\Components\Toggle::make('is_active')->label(__('Active'))->default(true),
             ]),
 
             Forms\Components\Section::make(__('Condition & Return'))->columns(2)->schema([
@@ -97,7 +112,7 @@ class AssignmentResource extends Resource
             Forms\Components\Section::make(__('Maintenance & Warranty'))->columns(2)->schema([
                 Forms\Components\Select::make('maintenance_status_id')
                     ->label(__('Maintenance Status'))
-                    ->options(fn () => static::lookupOptions(MaintenanceStatus::class)),
+                    ->options(fn () => static::lookupOptions(Status::class, fn ($q) => $q->where('scope', Status::SCOPE_MAINTENANCE))),
                 Forms\Components\Select::make('maintenance_type_id')
                     ->label(__('Maintenance Type'))
                     ->options(fn () => static::lookupOptions(MaintenanceType::class)),
@@ -118,7 +133,7 @@ class AssignmentResource extends Resource
                 Forms\Components\FileUpload::make('attachment_path')
                     ->label(__('Handover Form'))
                     ->disk('public')
-                    ->directory('assignments'),
+                    ->directory('transactions'),
             ]),
         ]);
     }
@@ -126,8 +141,19 @@ class AssignmentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('assignment_number')->label(__('Assignment #'))->searchable(),
+                Tables\Columns\TextColumn::make('transaction_number')->label(__('Transaction #'))->searchable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label(__('Type'))
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => static::typeOptions()[$state] ?? $state)
+                    ->color(fn (string $state): string => match ($state) {
+                        Transaction::TYPE_REGISTERED => 'info',
+                        Transaction::TYPE_CHECK_OUT => 'warning',
+                        Transaction::TYPE_CHECK_IN => 'success',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('asset.asset_tag')->label(__('Asset'))->searchable(),
                 Tables\Columns\TextColumn::make('user.full_name')->label(__('User'))->searchable(),
                 Tables\Columns\TextColumn::make('assignmentStatus.code')
@@ -135,7 +161,7 @@ class AssignmentResource extends Resource
                     ->badge()
                     ->formatStateUsing(fn ($state, $record) => $record->assignmentStatus?->getTranslatedName())
                     ->color(fn ($record) => $record->assignmentStatus?->getColour() ?? 'gray'),
-                Tables\Columns\TextColumn::make('assignedBy.full_name')->label(__('Assigned By')),
+                Tables\Columns\TextColumn::make('assignedBy.full_name')->label(__('Performed By')),
                 Tables\Columns\TextColumn::make('checked_out_at')->label(__('Out'))->dateTime()->sortable(),
                 Tables\Columns\TextColumn::make('checked_in_at')->label(__('In'))->dateTime()->sortable(),
                 Tables\Columns\TextColumn::make('conditionOut.code')
@@ -144,34 +170,28 @@ class AssignmentResource extends Resource
                 Tables\Columns\TextColumn::make('conditionIn.code')
                     ->label(__('Condition In'))
                     ->formatStateUsing(fn ($state, $record) => $record->conditionIn?->getTranslatedName()),
-                Tables\Columns\IconColumn::make('is_active')->label(__('Active'))->boolean(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active'),
-                Tables\Filters\SelectFilter::make('user_id')->relationship('user', 'full_name'),
-                Tables\Filters\SelectFilter::make('asset_id')->relationship('asset', 'asset_tag'),
-                Tables\Filters\SelectFilter::make('assignment_status_id')->relationship('assignmentStatus', 'code'),
+                Tables\Filters\SelectFilter::make('type')
+                    ->label(__('Type'))
+                    ->options(static::typeOptions()),
+                Tables\Filters\SelectFilter::make('user_id')
+                    ->label(__('Users'))
+                    ->relationship('user', 'full_name'),
+                Tables\Filters\SelectFilter::make('assignment_status_id')
+                    ->label(__('Assignment Status'))
+                    ->options(fn () => static::lookupOptions(Status::class, fn ($q) => $q->where('scope', Status::SCOPE_ASSIGNMENT))),
             ])
-            ->actions([
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
-                ])->icon('heroicon-m-ellipsis-vertical'),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ]);
+            ->actions([])
+            ->bulkActions([]);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAssignments::route('/'),
-            'create' => Pages\CreateAssignment::route('/create'),
-            'edit' => Pages\EditAssignment::route('/{record}/edit'),
+            'index' => Pages\ListTransactions::route('/'),
+            'create' => Pages\CreateTransaction::route('/create'),
+            'edit' => Pages\EditTransaction::route('/{record}/edit'),
         ];
     }
 

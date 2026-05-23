@@ -19,11 +19,11 @@ return new class extends Migration
             $table->foreignUuid('condition_in_id')->nullable()->after('condition_out_id')
                 ->constrained('asset_conditions')->nullOnDelete();
             $table->foreignUuid('assignment_status_id')->nullable()->after('condition_in_id')
-                ->constrained('asset_assignment_statuses')->nullOnDelete();
+                ->constrained('statuses')->nullOnDelete();
             $table->foreignUuid('return_reason_id')->nullable()->after('assignment_status_id')
                 ->constrained('asset_return_reasons')->nullOnDelete();
             $table->foreignUuid('maintenance_status_id')->nullable()->after('return_reason_id')
-                ->constrained('maintenance_statuses')->nullOnDelete();
+                ->constrained('statuses')->nullOnDelete();
             $table->foreignUuid('maintenance_type_id')->nullable()->after('maintenance_status_id')
                 ->constrained('maintenance_types')->nullOnDelete();
             $table->foreignUuid('warranty_provider_id')->nullable()->after('maintenance_type_id')
