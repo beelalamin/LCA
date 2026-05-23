@@ -17,7 +17,16 @@ class Settings extends Page
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
     protected static string $view = 'filament.pages.settings';
     protected static ?int $navigationSort = 4;
-    protected static bool $shouldRegisterNavigation = true;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('admin') ?? false;
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('admin') ?? false;
+    }
     
     public ?array $data = [];
 
@@ -34,13 +43,13 @@ class Settings extends Page
     public function mount(): void
     {
         $this->data = [
-            'label_width' => Setting::get('label_width', 140),
-            'label_height' => Setting::get('label_height', 75),
-            'label_padding' => Setting::get('label_padding', 10),
-            'columns_per_page' => Setting::get('columns_per_page', 4),
-            'print_type' => Setting::get('print_type', 'qrcode'),
+            'label_width' => Setting::get('label_width', Setting::labelDefault('label_width')),
+            'label_height' => Setting::get('label_height', Setting::labelDefault('label_height')),
+            'label_padding' => Setting::get('label_padding', Setting::labelDefault('label_padding')),
+            'columns_per_page' => Setting::get('columns_per_page', Setting::labelDefault('columns_per_page')),
+            'print_type' => Setting::get('print_type', Setting::labelDefault('print_type')),
         ];
-        
+
         $this->form->fill($this->data);
     }
 
@@ -99,15 +108,7 @@ class Settings extends Page
                 ->color('gray')
                 ->requiresConfirmation()
                 ->action(function () {
-                    $defaults = [
-                        'label_width' => 140,
-                        'label_height' => 75,
-                        'label_padding' => 10,
-                        'columns_per_page' => 4,
-                        'print_type' => 'qrcode',
-                    ];
-
-                    foreach ($defaults as $key => $value) {
+                    foreach (Setting::LABEL_DEFAULTS as $key => $value) {
                         Setting::set($key, $value);
                     }
 

@@ -38,6 +38,11 @@ class CategoryResource extends Resource
         return __('Lookups');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'asset_manager']) ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form

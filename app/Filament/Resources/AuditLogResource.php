@@ -39,6 +39,11 @@ class AuditLogResource extends Resource
         return __('System Administration');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('admin') ?? false;
+    }
+
     public static function canCreate(): bool
     {
         return false;

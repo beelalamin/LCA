@@ -15,9 +15,9 @@ class SupplierResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-truck';
     protected static ?int $navigationSort = 30;
 
-    public static function getModelLabel(): string { return __('Store / Vendor'); }
-    public static function getPluralModelLabel(): string { return __('Stores / Vendors'); }
-    public static function getNavigationLabel(): string { return __('Stores / Vendors'); }
+    public static function getModelLabel(): string { return __('Vendor'); }
+    public static function getPluralModelLabel(): string { return __('Vendors'); }
+    public static function getNavigationLabel(): string { return __('Vendors'); }
 
     public static function getPages(): array
     {

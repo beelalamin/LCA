@@ -100,31 +100,6 @@
     color: rgb(107 114 128);
 }
 
-/* ---- Sticky/frozen actions column on data tables.
-       Pins the trailing cell (which Filament fills with the ActionGroup)
-       to the inline-end edge so it stays visible during horizontal scroll. ---- */
-.fi-ta-content table > thead > tr > th:last-child,
-.fi-ta-content table > tbody > tr > td:last-child {
-    position: sticky;
-    inset-inline-end: 0;
-    z-index: 5;
-    background-color: rgb(255 255 255);
-    box-shadow: -8px 0 8px -6px rgb(0 0 0 / 0.06);
-}
-
-.dark .fi-ta-content table > thead > tr > th:last-child,
-.dark .fi-ta-content table > tbody > tr > td:last-child {
-    background-color: rgb(24 24 27); /* zinc-900 */
-}
-
-.fi-ta-content table > tbody > tr:hover > td:last-child {
-    background-color: rgb(249 250 251); /* gray-50 */
-}
-
-.dark .fi-ta-content table > tbody > tr:hover > td:last-child {
-    background-color: rgb(39 39 42); /* zinc-800 */
-}
-
 /* ---- Toggle: enforce track + knob sizing so the white knob stays inside.
        Filament's compiled classes (`fi-fo-toggle`, `h-6 w-11` + knob `h-5 w-5`,
        `border-2 border-transparent`) plus Tailwind v4's `translate-x-5` already
@@ -145,15 +120,16 @@
 }
 
 @media (min-width: 768px) {
-    /* Widen the auth card so both columns fit comfortably. */
+    /* Auth card: tighter, more balanced width. */
     .fi-simple-layout .fi-simple-main {
-        max-width: 80rem !important;
+        max-width: 60rem !important;
     }
 
-    /* Two-column grid: brand on the left, LC logo + form on the right. */
+    /* Two-column grid: brand on the left, LC logo + form on the right.
+       Brand column gets a bit more breathing room; form column is kept tight. */
     .fi-simple-layout .fi-simple-page > section {
-        grid-template-columns: 1fr 1fr;
-        gap: 3.5rem;
+        grid-template-columns: 1.1fr 1fr;
+        gap: 2.5rem;
         align-items: stretch;
     }
 
@@ -171,12 +147,18 @@
         grid-column: 2;
         grid-row: 1;
         align-self: end;
+        max-width: 22rem;
+        justify-self: center;
+        width: 100%;
     }
 
-    /* Form: right column, second row (stacks under the LC logo). */
+    /* Form: right column, second row — capped so inputs don't stretch edge-to-edge. */
     .fi-simple-layout .fi-simple-page > section > .fi-form {
         grid-column: 2;
         grid-row: 2;
         align-self: start;
+        max-width: 22rem;
+        justify-self: center;
+        width: 100%;
     }
 }

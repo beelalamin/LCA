@@ -30,11 +30,16 @@ class RoleResource extends ShieldRoleResource
         return __('System Administration');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('admin') ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         $form = parent::form($form);
 
-        $form->schema(static::removeGuardNameFromSchema($form->getComponents()));
+        static::hideGuardNameInSchema($form->getComponents());
 
         return $form;
     }
@@ -53,30 +58,29 @@ class RoleResource extends ShieldRoleResource
         return $table;
     }
 
-    protected static function removeGuardNameFromSchema(array $components): array
+    protected static function hideGuardNameInSchema(array $components): void
     {
-        return collect($components)
-            ->map(function ($component) {
-                if (method_exists($component, 'getChildComponents')) {
-                    try {
-                        $children = $component->getChildComponents();
-                        if (! empty($children)) {
-                            $component->schema(static::removeGuardNameFromSchema($children));
-                        }
-                    } catch (\Throwable $e) {
-                        // Some components are not schema containers, skip
-                    }
+        foreach ($components as $component) {
+            if (method_exists($component, 'getName') && $component->getName() === 'guard_name') {
+                if (method_exists($component, 'hidden')) {
+                    $component->hidden(true);
                 }
+                if (method_exists($component, 'dehydrated')) {
+                    $component->dehydrated(false);
+                }
+                continue;
+            }
 
-                return $component;
-            })
-            ->reject(function ($component) {
-                if (method_exists($component, 'getName')) {
-                    return $component->getName() === 'guard_name';
+            if (method_exists($component, 'getChildComponents')) {
+                try {
+                    $children = $component->getChildComponents();
+                    if (! empty($children)) {
+                        static::hideGuardNameInSchema($children);
+                    }
+                } catch (\Throwable $e) {
+                    // Skip non-container components
                 }
-                return false;
-            })
-            ->values()
-            ->all();
+            }
+        }
     }
 }

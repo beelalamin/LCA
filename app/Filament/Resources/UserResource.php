@@ -47,6 +47,11 @@ class UserResource extends Resource
         return __('System Administration');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('admin') ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([

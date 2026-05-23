@@ -44,10 +44,6 @@ class StatusResource extends Resource
             ->default(Status::SCOPE_ASSET)
             ->required());
 
-        $schema[] = Forms\Components\TextInput::make('color')
-            ->label(__('Color'))
-            ->placeholder('success | warning | danger | info | gray');
-
         return $form->schema($schema);
     }
 
@@ -55,19 +51,15 @@ class StatusResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->label(__('Name'))
+                    ->searchable()
+                    ->formatStateUsing(fn ($state, $record) => $record->getTranslatedName()),
                 Tables\Columns\TextColumn::make('scope')
                     ->label(__('Scope'))
                     ->badge()
                     ->formatStateUsing(fn (string $state) => static::scopeOptions()[$state] ?? $state)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('name')
-                    ->label(__('Name'))
-                    ->searchable()
-                    ->formatStateUsing(fn ($state, $record) => $record->getTranslatedName()),
-                Tables\Columns\TextColumn::make('color')
-                    ->label(__('Color'))
-                    ->badge()
-                    ->color(fn ($record) => $record->getColour()),
             ])
             ->defaultSort('scope')
             ->filters([

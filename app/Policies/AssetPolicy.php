@@ -23,7 +23,15 @@ class AssetPolicy
      */
     public function view(User $user, Asset $asset): bool
     {
-        return $user->can('view_asset');
+        if (! $user->can('view_asset')) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['admin', 'asset_manager'])) {
+            return true;
+        }
+
+        return $asset->assigned_to_user_id === $user->id;
     }
 
     /**

@@ -35,6 +35,11 @@ class TransactionResource extends Resource
         return __('Asset Management');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'asset_manager']) ?? false;
+    }
+
     protected static function lookupOptions(string $modelClass, ?callable $scope = null): array
     {
         $query = $modelClass::query()

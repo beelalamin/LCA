@@ -53,6 +53,16 @@ class AssetResource extends Resource
         return __('Asset Management');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasAnyRole(['admin', 'asset_manager']) ?? false;
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->can('view_asset') ?? false;
+    }
+
     protected static function lookupOptions(string $modelClass, ?callable $scope = null): array
     {
         $query = $modelClass::query()->where('is_active', true)->orderBy('sort_order')->orderBy('code');
@@ -377,7 +387,7 @@ class AssetResource extends Resource
                     ->label(__('Location'))
                     ->formatStateUsing(fn ($state, $record) => $record->officeLocation?->getTranslatedName())
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('warranty_expiry')->label(__('Warranty Expiry'))->date()->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('warranty_expiry')->label(__('Warranty Expiry'))->date()->sortable()->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('purchase_date')->label(__('Purchase Date'))->date()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -475,15 +485,10 @@ class AssetResource extends Resource
 
                             Notification::make()->title(__('Asset checked in successfully'))->success()->send();
                         }),
-                    Action::make('printBarcode')
-                        ->label(__('Print Barcode'))
-                        ->icon('heroicon-o-viewfinder-circle')
-                        ->url(fn (Asset $record) => route('asset.barcode', $record))
-                        ->openUrlInNewTab(),
-                    Action::make('printQrCode')
-                        ->label(__('Print QR Code'))
-                        ->icon('heroicon-o-qr-code')
-                        ->url(fn (Asset $record) => route('asset.qrcode', $record))
+                    Action::make('printLabel')
+                        ->label(__('Print Label'))
+                        ->icon('heroicon-o-printer')
+                        ->url(fn (Asset $record) => route('asset.label', $record))
                         ->openUrlInNewTab(),
                     Tables\Actions\DeleteAction::make(),
                 ])->icon('heroicon-m-ellipsis-vertical')->tooltip(__('Actions')),

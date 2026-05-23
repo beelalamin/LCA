@@ -80,8 +80,8 @@ class RolesPermissionsSeeder extends Seeder
         $assetManager->syncPermissions(Permission::whereIn('name', $assetManagerPermissions)->get());
 
         $userPermissions = [
-            'view_any_asset', 'view_asset',
-            'view_any_transaction', 'view_transaction',
+            'view_asset',
+            'view_transaction',
             'page_Dashboard', 'page_Profile',
             'page_MyAssets', 'page_MyTransactionsHistory',
         ];
