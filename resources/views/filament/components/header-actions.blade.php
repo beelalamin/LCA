@@ -1,8 +1,9 @@
 <div class="flex items-center gap-x-4">
-    <!-- LC Logo (placed before the scanner) -->
+    {{-- LC Logo (placed before the scanner) — hidden
     <img src="{{ asset('images/lca-logo.png') }}"
          alt="LC Mark"
          class="h-8 w-auto object-contain hidden md:block">
+    --}}
 
     <!-- Scanner Modal Toggle -->
     <x-filament::modal id="scanner-modal" width="lg" alignment="center">

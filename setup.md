@@ -32,6 +32,18 @@ fastcgi_param SERVER_PORT 443;
 
 ```
 
+- **Disable the Varnish page cache (mandatory):** CloudPanel puts Varnish in front of PHP with a 7-day TTL and a VCL that ignores `Cache-Control: no-store` and strips `Set-Cookie`. Its bypass list covers WordPress/Joomla admin paths, not Filament's `/admin`, so it caches the anonymous `/admin → /admin/login` redirect and the authenticated `/admin/login → /admin` redirect and then serves both to everyone — an infinite redirect loop that never reaches PHP. Turn it off for this site in CloudPanel → **Sites** → `lca.addainventoryhub.com` → **Settings** → Varnish Cache, then purge what is already stored:
+
+```bash
+varnishadm 'ban req.http.host ~ "lca.addainventoryhub.com"'
+```
+
+Verify from any machine — `x-cache-age` must be absent or `0`, never counting up:
+
+```bash
+curl -sI https://lca.addainventoryhub.com/admin | grep -i 'x-cache\|location'
+```
+
 ---
 
 ### 2. Laravel Codebase Preparation
