@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandLogo(fn () => view('filament.components.brand-logo'))
-            ->favicon(asset('images/lca-logo.png'))
+            ->favicon(asset('images/adda-logo-dark-mark.svg'))
             ->userMenuItems([
                 'account' => MenuItem::make()
                     ->label(fn () => __('Profile'))
@@ -41,6 +41,10 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->font('system-ui')
+            ->renderHook(
+                PanelsRenderHook::HEAD_START,
+                fn (): string => Blade::render('@include("filament.components.social-meta")'),
+            )
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => Blade::render("@vite('resources/css/filament/admin/theme.css')"),
